@@ -1,1113 +1,1026 @@
 <!DOCTYPE html>
 <html lang="sk">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Taktický Časomerač a Kalkulačka Paliva</title>
-  
-  <!-- PWA Meta tags -->
-  <meta name="theme-color" content="#0d1117">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22Časomerač a Palivo%22%2C%22short_name%22%3A%22Hasiči%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230d1117%22%2C%22theme_color%22%3A%22%230d1117%22%7D">
-
-  <!-- Fonts & FontAwesome -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@600;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <!-- html2canvas Library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-  <style>
-    :root {
-      --bg: #0d1117;
-      --card-bg: rgba(22, 27, 34, 0.85);
-      --border: #30363d;
-      --text: #c9d1d9;
-      --text-bright: #f0f6fc;
-      --accent: #da3633;
-      --green: #238636;
-      --blue: #1f6feb;
-      --yellow: #d29922;
-      --amber: #f0883e;
-      --purple: #8957e5;
-      --radius: 12px;
-      --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      background-color: var(--bg);
-      background-image: radial-gradient(circle at 50% 0%, #1a2332 0%, #0d1117 75%);
-      color: var(--text);
-      min-height: 100vh;
-      padding: 12px;
-      padding-bottom: 80px; /* Návi bar space */
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-    }
-
-    .app-container {
-      width: 100%;
-      max-width: 500px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    /* Header */
-    header {
-      background: var(--card-bg);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: var(--shadow);
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand i {
-      color: var(--accent);
-      font-size: 1.4rem;
-    }
-
-    .brand h1 {
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: var(--text-bright);
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-    }
-
-    .live-clock {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 1.05rem;
-      font-weight: 600;
-      color: var(--amber);
-      background: rgba(240, 136, 62, 0.1);
-      padding: 4px 8px;
-      border-radius: 6px;
-      border: 1px solid rgba(240, 136, 62, 0.2);
-    }
-
-    /* Bottom Navigation Bar */
-    .nav-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(13, 17, 23, 0.95);
-      backdrop-filter: blur(12px);
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-around;
-      padding: 8px 0;
-      z-index: 99;
-    }
-
-    .nav-btn {
-      background: none;
-      border: none;
-      color: #8b949e;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-      width: 50%;
-    }
-
-    .nav-btn i {
-      font-size: 1.2rem;
-    }
-
-    .nav-btn.active {
-      color: var(--text-bright);
-    }
-
-    .nav-btn.active i {
-      color: var(--accent);
-    }
-
-    /* Page Visibility */
-    .page {
-      display: none;
-      flex-direction: column;
-      gap: 14px;
-      width: 100%;
-    }
-
-    .page.active {
-      display: flex;
-    }
-
-    /* Card Box Styles */
-    .card {
-      background: var(--card-bg);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px;
-      box-shadow: var(--shadow);
-    }
-
-    .card-title {
-      font-size: 0.8rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: #8b949e;
-      margin-bottom: 10px;
-      letter-spacing: 0.8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* Vehicle Selector Grid */
-    .vehicle-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-    }
-
-    .vehicle-btn {
-      background: #21262d;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 6px;
-      color: var(--text);
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: all 0.15s ease;
-    }
-
-    .vehicle-btn.active {
-      background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
-      box-shadow: 0 0 12px rgba(218, 54, 51, 0.4);
-    }
-
-    .vehicle-input {
-      grid-column: span 2;
-      background: #161b22;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 12px;
-      color: var(--text-bright);
-      font-size: 0.85rem;
-      outline: none;
-    }
-
-    .vehicle-input:focus {
-      border-color: var(--blue);
-    }
-
-    /* Timeline Steps */
-    .timeline {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .timeline-item {
-      background: #161b22;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .timeline-item.warning {
-      border-color: #da3633 !important;
-    }
-
-    .timeline-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .timeline-label {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--text-bright);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .timeline-time {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: var(--yellow);
-    }
-
-    .timeline-time.empty {
-      color: #484f58;
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-
-    .timeline-actions {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-    }
-
-    .btn-action {
-      background: var(--green);
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 10px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .btn-edit {
-      background: #21262d;
-      color: #8b949e;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      width: 38px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-
-    .validation-msg {
-      font-size: 0.7rem;
-      color: #f85149;
-      font-weight: 600;
-      display: none;
-    }
-
-    .timeline-item.warning .validation-msg {
-      display: block;
-    }
-
-    /* Summary Preview Box */
-    .summary-card {
-      background: #0d1117;
-      border: 1px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .summary-header-text {
-      border-bottom: 2px solid var(--accent);
-      padding-bottom: 6px;
-      margin-bottom: 4px;
-    }
-
-    .summary-header-text h2 {
-      font-size: 1rem;
-      color: var(--text-bright);
-      font-weight: 800;
-      text-transform: uppercase;
-    }
-
-    .summary-header-text p {
-      font-size: 0.75rem;
-      color: #8b949e;
-    }
-
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.85rem;
-      padding: 4px 0;
-      border-bottom: 1px solid rgba(48, 54, 61, 0.4);
-    }
-
-    .summary-row .label {
-      color: #8b949e;
-      font-weight: 600;
-    }
-
-    .summary-row .val {
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--text-bright);
-      font-weight: 700;
-    }
-
-    /* Primary Action Buttons */
-    .global-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 4px;
-    }
-
-    .btn-main {
-      border: none;
-      border-radius: 8px;
-      padding: 12px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .btn-download { background: var(--blue); color: #fff; }
-    .btn-share { background: var(--purple); color: #fff; }
-    .btn-reset { background: #21262d; color: #f85149; border: 1px solid var(--border); grid-column: span 2; }
-
-    /* Custom Edit Modal */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease;
-      padding: 20px;
-    }
-
-    .modal-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .modal {
-      background: #161b22;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      width: 100%;
-      max-width: 340px;
-      padding: 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-    }
-
-    .modal-title {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--text-bright);
-    }
-
-    .time-picker-controls {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-    }
-
-    .time-input {
-      background: #0d1117;
-      border: 1px solid var(--border);
-      color: var(--yellow);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 1.8rem;
-      font-weight: 800;
-      padding: 8px 12px;
-      border-radius: 8px;
-      text-align: center;
-      outline: none;
-      width: 150px;
-    }
-
-    .btn-step {
-      background: #21262d;
-      border: 1px solid var(--border);
-      color: var(--text-bright);
-      width: 44px;
-      height: 44px;
-      border-radius: 8px;
-      font-size: 1.1rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .btn-modal-cancel { background: #21262d; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 10px; font-weight: 600; }
-    .btn-modal-save { background: var(--green); color: #fff; border: none; border-radius: 6px; padding: 10px; font-weight: 700; }
-
-    /* PAGE 2 - FUEL CALCULATOR STYLES */
-    .fuel-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-
-    .fuel-card {
-      background: #161b22;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      text-align: center;
-    }
-
-    .fuel-card.active {
-      border-color: var(--accent);
-      background: rgba(218, 54, 51, 0.1);
-      box-shadow: 0 0 12px rgba(218, 54, 51, 0.2);
-    }
-
-    .fuel-card i {
-      font-size: 1.8rem;
-      color: var(--accent);
-      margin-bottom: 2px;
-    }
-
-    .fuel-card-img {
-      height: 32px;
-      width: auto;
-      max-width: 100%;
-      object-fit: contain;
-      margin-bottom: 2px;
-      filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.5));
-    }
-
-    .fuel-card .title {
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: var(--text-bright);
-    }
-
-    .fuel-card .rate {
-      font-size: 0.75rem;
-      color: #8b949e;
-      font-weight: 600;
-    }
-
-    .calc-box {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-top: 10px;
-    }
-
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .input-group label {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #8b949e;
-    }
-
-    .input-group input {
-      background: #0d1117;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 12px;
-      color: var(--text-bright);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 1.1rem;
-      outline: none;
-    }
-
-    .result-box {
-      background: rgba(35, 134, 54, 0.15);
-      border: 1px solid var(--green);
-      border-radius: var(--radius);
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .result-title {
-      font-size: 0.8rem;
-      color: #8b949e;
-      text-transform: uppercase;
-      font-weight: 700;
-    }
-
-    .result-value {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 2rem;
-      font-weight: 800;
-      color: #3fb950;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DHZO Lehnice - Správa o výjazde</title>
+<!-- Google Fonts & FontAwesome / html2canvas -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+:root {
+  --primary: #dc2626;
+  --primary-hover: #b91c1c;
+  --primary-dark: #991b1b;
+  --accent: #f59e0b;
+  --success: #16a34a;
+  --bg-overlay: rgba(15, 17, 23, 0.78);
+  --glass-bg: rgba(22, 27, 38, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-card: rgba(30, 36, 51, 0.75);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --shadow-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background:
+    linear-gradient(rgba(10, 12, 18, 0.82), rgba(10, 12, 18, 0.85)),
+    url('https://i.imgur.com/icboMcv.jpg') center/cover no-repeat fixed;
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 15px;
+}
+
+.app-container {
+  max-width: 650px;
+  width: 100%;
+  margin: 0 auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+header.header-top {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-glow);
+  margin-bottom: 20px;
+}
+
+.brand-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-icon {
+  width: auto;
+  padding: 0 10px;
+  height: 38px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.brand-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+}
+
+.brand-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.clock-display {
+  font-family: monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 1px;
+}
+
+.vyjazd-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(220, 38, 38, 0.15);
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fca5a5;
+}
+
+.vyjazd-badge select {
+  background: transparent;
+  color: #ffffff;
+  border: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.vyjazd-badge select option {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.card {
+  background: var(--glass-card);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--primary);
+  opacity: 0.6;
+  transition: all 0.2s;
+}
+
+.card:hover {
+  background: rgba(38, 46, 64, 0.85);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.card:hover::before {
+  opacity: 1;
+  width: 6px;
+}
+
+.card:active {
+  transform: scale(0.98);
+}
+
+.card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-title {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.card-subtitle-hint {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.card-time-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-time-badge {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-family: monospace;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f8fafc;
+  min-width: 95px;
+  text-align: center;
+}
+
+.card-time-badge.active {
+  background: rgba(22, 163, 74, 0.2);
+  border-color: rgba(34, 197, 94, 0.5);
+  color: #4ade80;
+}
+
+.edit-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm);
+  color: #ffffff;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-btn:hover {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: rgba(245, 158, 11, 0.6);
+  transform: scale(1.05);
+}
+
+.grid-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  width: 100%;
+}
+
+@media (max-width: 520px) {
+  .grid-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vehicle-card {
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+#tatraCard {
+  background:
+    linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)),
+    url('https://i.imgur.com/5aFtdhe.jpg') center/cover no-repeat;
+}
+
+#ivecoCard {
+  background:
+    linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)),
+    url('https://i.imgur.com/95Rqm00.jpg') center/cover no-repeat;
+}
+
+.vehicle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.vehicle-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.power-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: #334155;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.power-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.power-switch.active {
+  background: var(--success);
+}
+
+.power-switch.active::after {
+  transform: translateX(20px);
+}
+
+.vehicle-name {
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.vehicle-card.disabled {
+  opacity: 0.5;
+  filter: grayscale(80%);
+}
+
+.vehicle-card.disabled .vehicle-content {
+  pointer-events: none;
+}
+
+.vehicle-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.crew-selector {
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.crew-selector:hover {
+  background: rgba(30, 41, 59, 0.7);
+}
+
+.crew-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.crew-value {
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 1.05rem;
+}
+
+.fuel-box {
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fuel-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.fuel-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.input-row select {
+  background: #1e293b;
+  color: #ffffff;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-weight: 700;
+  outline: none;
+}
+
+.fuel-result-badge {
+  background: rgba(220, 38, 38, 0.25);
+  border: 1px solid rgba(220, 38, 38, 0.5);
+  color: #fca5a5;
+  text-align: center;
+  padding: 6px;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  margin-top: 4px;
+}
+
+#reportCard {
+  background: linear-gradient(145deg, #1e2430, #131722);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 100%;
+  box-shadow: var(--shadow-glow);
+  position: relative;
+  overflow: hidden;
+}
+
+#reportCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary));
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+}
+
+.report-title-group h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+.report-title-group p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.report-badge-vyjazd {
+  background: var(--primary);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+}
+
+.report-section {
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+
+.report-section-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.timeline-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.time-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  padding: 4px 0;
+  border-bottom: 1px stroke rgba(255,255,255,0.05);
+}
+
+.time-item span {
+  color: var(--text-muted);
+}
+
+.time-item strong {
+  color: #ffffff;
+  font-family: monospace;
+}
+
+.vehicle-summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 0.85rem;
+}
+
+.vehicle-summary-item:not(:last-child) {
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+footer.nav-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 10px;
+}
+
+.btn {
+  flex: 1;
+  padding: 14px 20px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-secondary {
+  background: rgba(30, 41, 59, 0.8);
+  color: #f1f5f9;
+  border: 1px solid var(--glass-border);
+}
+
+.btn-secondary:hover {
+  background: rgba(51, 65, 85, 0.9);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #ef4444, var(--primary));
+  transform: translateY(-1px);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: white;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.4);
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.hidden {
+  display: none !important;
+}
+</style>
 </head>
 <body>
 
-  <div class="app-container">
-    
-    <!-- Top Bar -->
-    <header>
-      <div class="brand">
-        <i class="fa-solid fa-fire-extinguisher"></i>
-        <h1>Hasiči App</h1>
+<div class="app-container">
+
+  <!-- 1. STRÁNKA: ČASY -->
+  <div id="page1" style="display: flex; flex-direction: column; flex: 1;">
+    <header class="header-top">
+      <div class="brand-badge">
+        <div class="brand-icon">Výjazd</div>
+        <div>
+          <div class="brand-title">DHZO Lehnice</div>
+          <div class="brand-subtitle">Výjazdový systém</div>
+        </div>
       </div>
-      <div class="live-clock" id="liveClock">00:00:00</div>
+      <div class="header-right">
+        <div class="clock-display" id="clock1">00:00:00</div>
+        <div class="vyjazd-badge">
+          <span>Výjazd:</span>
+          <select id="vyjazdSelect"></select>
+        </div>
+      </div>
     </header>
 
-    <!-- PAGE 1: ČASOMERAČ (STOPPER) -->
-    <div class="page active" id="page-timer">
-      
-      <!-- Vehicle Selection Card -->
-      <div class="card">
-        <div class="card-title"><i class="fa-solid fa-truck-monster"></i> Vozidlo / Jednotka</div>
-        <div class="vehicle-grid">
-          <button class="vehicle-btn" data-v="CAS 30 Tatrapan"><i class="fa-solid fa-truck-shield"></i> CAS 30</button>
-          <button class="vehicle-btn" data-v="CAS 15 Man"><i class="fa-solid fa-truck-line"></i> CAS 15</button>
-          <button class="vehicle-btn" data-v="KRAZ 255B"><i class="fa-solid fa-truck"></i> KRAZ</button>
-          <button class="vehicle-btn" data-v="Isuzu D-Max"><i class="fa-solid fa-car"></i> Isuzu</button>
-          <input type="text" id="customVehicle" class="vehicle-input" placeholder="Iné vozidlo / Vlastný názov...">
+    <main>
+      <div class="card" onclick="saveTime(1)">
+        <div class="card-info">
+          <div class="card-title">1. Výjazd zo základne</div>
+          <div class="card-subtitle-hint">Kliknite pre zaznamenanie</div>
+        </div>
+        <div class="card-time-wrap">
+          <div class="card-time-badge" id="time1">--:--:--</div>
+          <button class="edit-btn" onclick="editTime(event, 1)" title="Ručná úprava času">✏️</button>
         </div>
       </div>
 
-      <!-- Timeline Card -->
-      <div class="card">
-        <div class="card-title"><i class="fa-solid fa-clock"></i> Priebeh Zásahu</div>
-        <div class="timeline">
-
-          <div class="timeline-item" id="item-0">
-            <div class="timeline-header">
-              <span class="timeline-label"><i class="fa-solid fa-bullhorn" style="color:#f0883e"></i> Vyhlásenie poplachu</span>
-              <span class="timeline-time empty" id="time-0">--:--:--</span>
-            </div>
-            <div class="timeline-actions">
-              <button class="btn-action" onclick="setStepTime(0)"><i class="fa-solid fa-check"></i> Poplach / Teraz</button>
-              <button class="btn-edit" onclick="openEditModal(0)"><i class="fa-solid fa-pen"></i></button>
-            </div>
-            <span class="validation-msg">⚠️ Čas je skorší ako predchádzajúci krok!</span>
-          </div>
-
-          <div class="timeline-item" id="item-1">
-            <div class="timeline-header">
-              <span class="timeline-label"><i class="fa-solid fa-truck-fast" style="color:#1f6feb"></i> Výjazd zo základne</span>
-              <span class="timeline-time empty" id="time-1">--:--:--</span>
-            </div>
-            <div class="timeline-actions">
-              <button class="btn-action" onclick="setStepTime(1)"><i class="fa-solid fa-check"></i> Výjazd / Teraz</button>
-              <button class="btn-edit" onclick="openEditModal(1)"><i class="fa-solid fa-pen"></i></button>
-            </div>
-            <span class="validation-msg">⚠️ Čas je skorší ako predchádzajúci krok!</span>
-          </div>
-
-          <div class="timeline-item" id="item-2">
-            <div class="timeline-header">
-              <span class="timeline-label"><i class="fa-solid fa-location-dot" style="color:#da3633"></i> Príchod na miesto</span>
-              <span class="timeline-time empty" id="time-2">--:--:--</span>
-            </div>
-            <div class="timeline-actions">
-              <button class="btn-action" onclick="setStepTime(2)"><i class="fa-solid fa-check"></i> Príchod / Teraz</button>
-              <button class="btn-edit" onclick="openEditModal(2)"><i class="fa-solid fa-pen"></i></button>
-            </div>
-            <span class="validation-msg">⚠️ Čas je skorší ako predchádzajúci krok!</span>
-          </div>
-
-          <div class="timeline-item" id="item-3">
-            <div class="timeline-header">
-              <span class="timeline-label"><i class="fa-solid fa-house-chimney-check" style="color:#2ea043"></i> Návrat na základňu</span>
-              <span class="timeline-time empty" id="time-3">--:--:--</span>
-            </div>
-            <div class="timeline-actions">
-              <button class="btn-action" onclick="setStepTime(3)"><i class="fa-solid fa-check"></i> Návrat / Teraz</button>
-              <button class="btn-edit" onclick="openEditModal(3)"><i class="fa-solid fa-pen"></i></button>
-            </div>
-            <span class="validation-msg">⚠️ Čas je skorší ako predchádzajúci krok!</span>
-          </div>
-
+      <div class="card" onclick="saveTime(2)">
+        <div class="card-info">
+          <div class="card-title">2. Príjazd na miesto</div>
+          <div class="card-subtitle-hint">Kliknite pre zaznamenanie</div>
+        </div>
+        <div class="card-time-wrap">
+          <div class="card-time-badge" id="time2">--:--:--</div>
+          <button class="edit-btn" onclick="editTime(event, 2)" title="Ručná úprava času">✏️</button>
         </div>
       </div>
 
-      <!-- Live Report Card -->
-      <div class="card">
-        <div class="card-title"><i class="fa-solid fa-file-contract"></i> Náhľad Správy</div>
-        
-        <div class="summary-card" id="captureArea">
-          <div class="summary-header-text">
-            <h2>Zápis o Zásahu</h2>
-            <p id="summaryDate">Dátum: --.--.----</p>
-          </div>
-
-          <div class="summary-row">
-            <span class="label">Vozidlo / Jednotka:</span>
-            <span class="val" id="sumVehicle">Nezadané</span>
-          </div>
-          <div class="summary-row">
-            <span class="label">Vyhlásenie poplachu:</span>
-            <span class="val" id="sumTime-0">--:--:--</span>
-          </div>
-          <div class="summary-row">
-            <span class="label">Výjazd zo základne:</span>
-            <span class="val" id="sumTime-1">--:--:--</span>
-          </div>
-          <div class="summary-row">
-            <span class="label">Príchod na miesto:</span>
-            <span class="val" id="sumTime-2">--:--:--</span>
-          </div>
-          <div class="summary-row">
-            <span class="label">Návrat na základňu:</span>
-            <span class="val" id="sumTime-3">--:--:--</span>
-          </div>
+      <div class="card" onclick="saveTime(3)">
+        <div class="card-info">
+          <div class="card-title">3. Odjazd na základňu</div>
+          <div class="card-subtitle-hint">Kliknite pre zaznamenanie</div>
         </div>
-
-        <div class="global-actions">
-          <button class="btn-main btn-download" onclick="exportPNG()"><i class="fa-solid fa-download"></i> PNG Stiahnuť</button>
-          <button class="btn-main btn-share" onclick="shareReport()"><i class="fa-solid fa-share-nodes"></i> Megosztás</button>
-          <button class="btn-main btn-reset" onclick="resetAll()"><i class="fa-solid fa-rotate-left"></i> Törlés / Reset</button>
+        <div class="card-time-wrap">
+          <div class="card-time-badge" id="time3">--:--:--</div>
+          <button class="edit-btn" onclick="editTime(event, 3)" title="Ručná úprava času">✏️</button>
         </div>
-
       </div>
 
-    </div>
-
-    <!-- PAGE 2: KALKULAČKA PALIVA (FOGYASZTÁSKISZÁMÍTÓ) -->
-    <div class="page" id="page-fuel">
-      <div class="card">
-        <div class="card-title"><i class="fa-solid fa-gas-pump"></i> Výpočet Spotreby Paliva</div>
-        
-        <!-- 4 KOCKA PNG IKONOKKAL -->
-        <div class="fuel-grid">
-          <!-- 1. Tatra -->
-          <div class="fuel-card active" onclick="selectFuelEq('tatra', this)">
-            <i class="fa-solid fa-truck-monster"></i>
-            <span class="title">TATRA</span>
-            <span class="rate" id="rate-tatra">Štandardná norma</span>
-          </div>
-
-          <!-- 2. Iveco -->
-          <div class="fuel-card" onclick="selectFuelEq('iveco', this)">
-            <i class="fa-solid fa-truck-front"></i>
-            <span class="title">IVECO</span>
-            <span class="rate" id="rate-iveco">Štandardná norma</span>
-          </div>
-
-          <!-- 3. Magirus (PNG ikonnal) -->
-          <div class="fuel-card" onclick="selectFuelEq('magirus', this)">
-            <img src="https://i.imgur.com/yBsv8ZH.png" alt="Magirus" class="fuel-card-img">
-            <span class="title">MAGIRUS</span>
-            <span class="rate">1 hod = 2 litra</span>
-          </div>
-
-          <!-- 4. STIHL (PNG ikonnal) -->
-          <div class="fuel-card" onclick="selectFuelEq('stihl', this)">
-            <img src="https://i.imgur.com/oV5V9TS.png" alt="STIHL" class="fuel-card-img">
-            <span class="title">STIHL</span>
-            <span class="rate">1 hod = 1 liter</span>
-          </div>
+      <div class="card" onclick="saveTime(4)">
+        <div class="card-info">
+          <div class="card-title">4. Návrat na základňu</div>
+          <div class="card-subtitle-hint">Kliknite pre zaznamenanie</div>
         </div>
-
-        <!-- Kalkulációs mezők -->
-        <div class="calc-box">
-          <div class="input-group">
-            <label><i class="fa-solid fa-stopwatch"></i> Doba prevádzky / Čas (v hodinách alebo minútach):</label>
-            <div style="display: flex; gap: 8px;">
-              <input type="number" id="fuelHours" placeholder="Hodiny (órák)" min="0" step="0.1" oninput="calculateFuel()">
-              <input type="number" id="fuelMinutes" placeholder="Minúty (percek)" min="0" step="1" oninput="calculateFuel()">
-            </div>
-          </div>
-
-          <div class="result-box">
-            <span class="result-title">Vypočítaná spotreba paliva</span>
-            <span class="result-value" id="fuelResult">0.00 L</span>
-          </div>
+        <div class="card-time-wrap">
+          <div class="card-time-badge" id="time4">--:--:--</div>
+          <button class="edit-btn" onclick="editTime(event, 4)" title="Ručná úprava času">✏️</button>
         </div>
-
       </div>
-    </div>
+    </main>
 
+    <footer class="nav-footer">
+      <button class="btn btn-secondary" onclick="resetTimes()">Resetovať</button>
+      <button class="btn btn-primary" onclick="goToPage(2)">Ďalej ➔</button>
+    </footer>
   </div>
 
-  <!-- Bottom Navigation -->
-  <nav class="nav-bar">
-    <button class="nav-btn active" onclick="switchPage('timer', this)">
-      <i class="fa-solid fa-stopwatch"></i>
-      <span>Časomerač</span>
-    </button>
-    <button class="nav-btn" onclick="switchPage('fuel', this)">
-      <i class="fa-solid fa-gas-pump"></i>
-      <span>Spotreba</span>
-    </button>
-  </nav>
-
-  <!-- Modal for Time Editing -->
-  <div class="modal-overlay" id="editModal">
-    <div class="modal">
-      <div class="modal-title" id="modalTitle">Upraviť čas</div>
-      
-      <div class="time-picker-controls">
-        <button class="btn-step" onclick="adjustModalTime(-1)">-1m</button>
-        <input type="time" id="modalTimeInput" class="time-input" step="1">
-        <button class="btn-step" onclick="adjustModalTime(1)">+1m</button>
+  <!-- 2. STRÁNKA: VOZIDLÁ A PALIVO -->
+  <div id="page2" class="hidden" style="display: flex; flex-direction: column; flex: 1;">
+    <header class="header-top">
+      <div class="brand-badge">
+        <div class="brand-icon">Výjazd</div>
+        <div>
+          <div class="brand-title">DHZO Lehnice</div>
+          <div class="brand-subtitle">Vozidlá a spotreba</div>
+        </div>
       </div>
-
-      <div class="modal-buttons">
-        <button class="btn-modal-cancel" onclick="closeEditModal()">Zrušiť</button>
-        <button class="btn-modal-save" onclick="saveModalTime()">Uložiť</button>
+      <div class="header-right">
+        <div class="clock-display" id="clock2">00:00:00</div>
       </div>
-    </div>
+    </header>
+
+    <main>
+      <div class="grid-row">
+        <!-- Tatra CAS32 -->
+        <div class="vehicle-card disabled" id="tatraCard">
+          <div class="vehicle-header">
+            <div class="vehicle-title-wrap">
+              <div class="vehicle-name">Tatra CAS32</div>
+            </div>
+            <div class="power-switch" id="tatraToggle" onclick="toggleVehicle('tatra')"></div>
+          </div>
+          <div class="vehicle-content">
+            <div class="crew-selector" onclick="cycleCrew('tatra')">
+              <span class="crew-label">Posádka</span>
+              <span class="crew-value" id="crew-tatra">1+1</span>
+            </div>
+            <div class="fuel-box">
+              <div class="fuel-label">Kalkulačka spotreby</div>
+              <div class="fuel-inputs">
+                <div class="input-row">
+                  <span>Vzdialenosť (5L/km):</span>
+                  <div><select id="tatraKm" onchange="calculateFuel('tatra')"></select> km</div>
+                </div>
+                <div class="input-row">
+                  <span>Chod čerpadla (3L/h):</span>
+                  <div>
+                    <select id="tatraHour" onchange="calculateFuel('tatra')"></select> h
+                    <select id="tatraMin" onchange="calculateFuel('tatra')"></select> min
+                  </div>
+                </div>
+              </div>
+              <div class="fuel-result-badge" id="tatraFuelResult">Spolu: 0 L</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Iveco CAS15 -->
+        <div class="vehicle-card disabled" id="ivecoCard">
+          <div class="vehicle-header">
+            <div class="vehicle-title-wrap">
+              <div class="vehicle-name">Iveco CAS15</div>
+            </div>
+            <div class="power-switch" id="ivecoToggle" onclick="toggleVehicle('iveco')"></div>
+          </div>
+          <div class="vehicle-content">
+            <div class="crew-selector" onclick="cycleCrew('iveco')">
+              <span class="crew-label">Posádka</span>
+              <span class="crew-value" id="crew-iveco">1+1</span>
+            </div>
+            <div class="fuel-box">
+              <div class="fuel-label">Kalkulačka spotreby</div>
+              <div class="fuel-inputs">
+                <div class="input-row">
+                  <span>Vzdialenosť (2L/km):</span>
+                  <div><select id="ivecoKm" onchange="calculateFuel('iveco')"></select> km</div>
+                </div>
+                <div class="input-row">
+                  <span>Chod čerpadla (1L/h):</span>
+                  <div>
+                    <select id="ivecoHour" onchange="calculateFuel('iveco')"></select> h
+                    <select id="ivecoMin" onchange="calculateFuel('iveco')"></select> min
+                  </div>
+                </div>
+              </div>
+              <div class="fuel-result-badge" id="ivecoFuelResult">Spolu: 0 L</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="nav-footer">
+      <button class="btn btn-secondary" onclick="goToPage(1)">⬅ Späť</button>
+      <button class="btn btn-primary" onclick="generateSummary(); goToPage(3);">Súhrn ➔</button>
+    </footer>
   </div>
 
-  <script>
-    // State Data Structure
-    const appState = {
-      vehicle: '',
-      times: ['', '', '', ''],
-      date: new Date().toLocaleDateString('sk-SK'),
-      selectedFuelEquipment: 'tatra'
-    };
+  <!-- 3. STRÁNKA: SPRÁVA A STIAHNUTIE OBRÁZKA -->
+  <div id="page3" class="hidden" style="display: flex; flex-direction: column; flex: 1;">
+    <header class="header-top">
+      <div class="brand-badge">
+        <div class="brand-icon">Výjazd</div>
+        <div>
+          <div class="brand-title">DHZO Lehnice</div>
+          <div class="brand-subtitle">Súhrn a uloženie</div>
+        </div>
+      </div>
+    </header>
 
-    let activeEditIndex = null;
+    <main>
+      <div id="reportCard">
+        <div class="report-header">
+          <div class="report-title-group">
+            <h2>SPRÁVA O VÝJAZDE</h2>
+            <p>Dobrovoľný hasičský zbor obce Lehnice</p>
+          </div>
+          <div class="report-badge-vyjazd" id="sumVyjazd">#1. výjazd</div>
+        </div>
 
-    // Register Service Worker for Offline Execution
-    if ('serviceWorker' in navigator) {
-      const swCode = `
-        self.addEventListener('install', e => e.waitUntil(self.skipWaiting()));
-        self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-        self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
-      `;
-      const blob = new Blob([swCode], { type: 'text/javascript' });
-      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
-    }
+        <div class="report-section">
+          <div class="report-section-title">⏱️ Zaznamenané časy</div>
+          <div class="timeline-grid">
+            <div class="time-item"><span>Výjazd zo základne:</span> <strong id="sumTime1">--:--:--</strong></div>
+            <div class="time-item"><span>Príjazd na miesto:</span> <strong id="sumTime2">--:--:--</strong></div>
+            <div class="time-item"><span>Odjazd na základňu:</span> <strong id="sumTime3">--:--:--</strong></div>
+            <div class="time-item"><span>Návrat na základňu:</span> <strong id="sumTime4">--:--:--</strong></div>
+          </div>
+        </div>
 
-    // Initialize Clock
-    function updateClock() {
-      const now = new Date();
-      document.getElementById('liveClock').innerText = now.toTimeString().split(' ')[0];
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
+        <div class="report-section">
+          <div class="report-section-title">🚒 Tatra CAS32</div>
+          <div id="sumTatraDetails">Nezúčastnilo sa výjazdu.</div>
+        </div>
 
-    // Init & LocalStorage
-    window.addEventListener('DOMContentLoaded', () => {
-      loadFromLocalStorage();
-      setupVehicleEvents();
-      renderUI();
-    });
+        <div class="report-section">
+          <div class="report-section-title">🚒 Iveco CAS15</div>
+          <div id="sumIvecoDetails">Nezúčastnilo sa výjazdu.</div>
+        </div>
+      </div>
+    </main>
 
-    function saveToLocalStorage() {
-      localStorage.setItem('fire_app_state', JSON.stringify(appState));
-    }
+    <footer class="nav-footer">
+      <button class="btn btn-secondary" onclick="goToPage(2)">⬅ Späť</button>
+      <button class="btn btn-success" onclick="downloadReportAsImage()">📷 Stiahnuť obrázok (PNG)</button>
+    </footer>
+  </div>
 
-    function loadFromLocalStorage() {
-      const saved = localStorage.getItem('fire_app_state');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          appState.vehicle = parsed.vehicle || '';
-          appState.times = parsed.times || ['', '', '', ''];
-          appState.date = parsed.date || new Date().toLocaleDateString('sk-SK');
-          appState.selectedFuelEquipment = parsed.selectedFuelEquipment || 'tatra';
-        } catch(e) {
-          console.error(e);
-        }
-      }
-    }
+</div>
 
-    // Page Switcher
-    function switchPage(pageId, btnEl) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+<script>
+function updateClock() {
+  const now = new Date();
+  const options = { timeZone: 'Europe/Bratislava', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+  const timeString = new Intl.DateTimeFormat('sk-SK', options).format(now);
+  document.getElementById('clock1').textContent = timeString;
+  document.getElementById('clock2').textContent = timeString;
+}
+setInterval(updateClock, 1000);
+updateClock();
 
-      document.getElementById(`page-${pageId}`).classList.add('active');
-      btnEl.classList.add('active');
-    }
+const vyjazdSelect = document.getElementById('vyjazdSelect');
+const tatraKmSelect = document.getElementById('tatraKm');
+const tatraHourSelect = document.getElementById('tatraHour');
+const tatraMinSelect = document.getElementById('tatraMin');
+const ivecoKmSelect = document.getElementById('ivecoKm');
+const ivecoHourSelect = document.getElementById('ivecoHour');
+const ivecoMinSelect = document.getElementById('ivecoMin');
 
-    // Vehicle Event Handling
-    function setupVehicleEvents() {
-      const btns = document.querySelectorAll('.vehicle-btn');
-      const customInput = document.getElementById('customVehicle');
+for (let i = 1; i <= 100; i++) {
+  let opt1 = document.createElement('option'); opt1.value = i; opt1.textContent = i;
+  vyjazdSelect.appendChild(opt1);
+  let opt2 = document.createElement('option'); opt2.value = i; opt2.textContent = i;
+  tatraKmSelect.appendChild(opt2);
+  let opt3 = document.createElement('option'); opt3.value = i; opt3.textContent = i;
+  ivecoKmSelect.appendChild(opt3);
+}
 
-      btns.forEach(btn => {
-        btn.addEventListener('click', () => {
-          btns.forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          appState.vehicle = btn.dataset.v;
-          customInput.value = '';
-          saveToLocalStorage();
-          renderUI();
-        });
-      });
+for (let h = 0; h <= 24; h++) {
+  let optH1 = document.createElement('option'); optH1.value = h; optH1.textContent = h;
+  tatraHourSelect.appendChild(optH1);
+  let optH2 = document.createElement('option'); optH2.value = h; optH2.textContent = h;
+  ivecoHourSelect.appendChild(optH2);
+}
 
-      customInput.addEventListener('input', (e) => {
-        btns.forEach(b => b.classList.remove('active'));
-        appState.vehicle = e.target.value;
-        saveToLocalStorage();
-        renderUI();
-      });
-    }
+[0, 15, 30, 45].forEach(m => {
+  let optM1 = document.createElement('option'); optM1.value = m; optM1.textContent = m < 10 ? '0' + m : m;
+  tatraMinSelect.appendChild(optM1);
+  let optM2 = document.createElement('option'); optM2.value = m; optM2.textContent = m < 10 ? '0' + m : m;
+  ivecoMinSelect.appendChild(optM2);
+});
 
-    // Set Time to NOW
-    function setStepTime(index) {
-      const now = new Date();
-      appState.times[index] = now.toTimeString().split(' ')[0];
-      saveToLocalStorage();
-      renderUI();
-    }
+tatraKmSelect.value = 1; tatraHourSelect.value = 0; tatraMinSelect.value = 0;
+ivecoKmSelect.value = 1; ivecoHourSelect.value = 0; ivecoMinSelect.value = 0;
 
-    // Modal Editing Logic
-    function openEditModal(index) {
-      activeEditIndex = index;
-      const modal = document.getElementById('editModal');
-      const input = document.getElementById('modalTimeInput');
-      
-      const labels = [
-        "Vyhlásenie poplachu",
-        "Výjazd zo základne",
-        "Príchod na miesto",
-        "Návrat na základňu"
-      ];
+let vehicleStates = { tatra: false, iveco: false };
+let crewStates = { tatra: 1, iveco: 1 };
 
-      document.getElementById('modalTitle').innerText = labels[index];
-      input.value = appState.times[index] || new Date().toTimeString().split(' ')[0];
-      
-      modal.classList.add('active');
-    }
+function toggleVehicle(vehicle) {
+  vehicleStates[vehicle] = !vehicleStates[vehicle];
+  const card = document.getElementById(vehicle + 'Card');
+  const toggle = document.getElementById(vehicle + 'Toggle');
 
-    function closeEditModal() {
-      document.getElementById('editModal').classList.remove('active');
-      activeEditIndex = null;
-    }
+  if (vehicleStates[vehicle]) {
+    card.classList.remove('disabled');
+    toggle.classList.add('active');
+    calculateFuel(vehicle);
+  } else {
+    card.classList.add('disabled');
+    toggle.classList.remove('active');
+    document.getElementById(vehicle + 'FuelResult').textContent = 'Spolu: 0 L';
+  }
+}
 
-    function adjustModalTime(minutes) {
-      const input = document.getElementById('modalTimeInput');
-      let val = input.value;
-      if (!val) val = "12:00:00";
-      
-      const parts = val.split(':');
-      let d = new Date();
-      d.setHours(parseInt(parts[0], 10));
-      d.setMinutes(parseInt(parts[1], 10) + minutes);
-      d.setSeconds(parts[2] ? parseInt(parts[2], 10) : 0);
+function cycleCrew(vehicle) {
+  if (vehicle === 'tatra') {
+    crewStates.tatra = (crewStates.tatra % 3) + 1;
+    document.getElementById('crew-tatra').textContent = '1+' + crewStates.tatra;
+  } else {
+    crewStates.iveco = (crewStates.iveco % 5) + 1;
+    document.getElementById('crew-iveco').textContent = '1+' + crewStates.iveco;
+  }
+}
 
-      const h = String(d.getHours()).padStart(2, '0');
-      const m = String(d.getMinutes()).padStart(2, '0');
-      const s = String(d.getSeconds()).padStart(2, '0');
-      input.value = `${h}:${m}:${s}`;
-    }
+function calculateFuel(vehicle) {
+  if (!vehicleStates[vehicle]) return;
 
-    function saveModalTime() {
-      if (activeEditIndex !== null) {
-        const val = document.getElementById('modalTimeInput').value;
-        appState.times[activeEditIndex] = val;
-        saveToLocalStorage();
-        renderUI();
-      }
-      closeEditModal();
-    }
+  if (vehicle === 'tatra') {
+    let km = parseInt(tatraKmSelect.value);
+    let hours = parseInt(tatraHourSelect.value);
+    let minutes = parseInt(tatraMinSelect.value);
+    let totalHours = hours + (minutes / 60);
+    let total = (km * 5) + (totalHours * 3);
+    document.getElementById('tatraFuelResult').textContent = 'Spolu: ' + (total % 1 === 0 ? total : total.toFixed(1)) + ' L';
+  } else {
+    let km = parseInt(ivecoKmSelect.value);
+    let hours = parseInt(ivecoHourSelect.value);
+    let minutes = parseInt(ivecoMinSelect.value);
+    let totalHours = hours + (minutes / 60);
+    let total = (km * 2) + (totalHours * 1);
+    document.getElementById('ivecoFuelResult').textContent = 'Spolu: ' + (total % 1 === 0 ? total : total.toFixed(1)) + ' L';
+  }
+}
 
-    // Validation Check (Chronological Order)
-    function validateTimeline() {
-      let previousTimeInSec = -1;
+function saveTime(cardNumber) {
+  const now = new Date();
+  const options = { timeZone: 'Europe/Bratislava', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+  const timeString = new Intl.DateTimeFormat('sk-SK', options).format(now);
+  const badge = document.getElementById('time' + cardNumber);
+  badge.textContent = timeString;
+  badge.classList.add('active');
+}
 
-      appState.times.forEach((tStr, i) => {
-        const itemEl = document.getElementById(`item-${i}`);
-        if (!tStr) {
-          itemEl.classList.remove('warning');
-          return;
-        }
+function editTime(event, cardNumber) {
+  event.stopPropagation();
+  const badge = document.getElementById('time' + cardNumber);
+  const currentVal = badge.textContent === '--:--:--' ? '00:00:00' : badge.textContent;
+ 
+  const newTime = prompt('Upravte čas (hh:mm:ss):', currentVal);
+  if (newTime !== null && newTime.trim() !== '') {
+    badge.textContent = newTime.trim();
+    badge.classList.add('active');
+  }
+}
 
-        const parts = tStr.split(':');
-        const currentSec = parseInt(parts[0], 10) * 3600 + parseInt(parts[1], 10) * 60 + parseInt(parts[2] || 0, 10);
+function resetTimes() {
+  for (let i = 1; i <= 4; i++) {
+    const badge = document.getElementById('time' + i);
+    badge.textContent = '--:--:--';
+    badge.classList.remove('active');
+  }
+  vyjazdSelect.value = 1;
+  if (vehicleStates.tatra) toggleVehicle('tatra');
+  if (vehicleStates.iveco) toggleVehicle('iveco');
+}
 
-        if (previousTimeInSec !== -1 && currentSec < previousTimeInSec) {
-          itemEl.classList.add('warning');
-        } else {
-          itemEl.classList.remove('warning');
-        }
+function goToPage(pageNum) {
+  document.getElementById('page1').classList.add('hidden');
+  document.getElementById('page2').classList.add('hidden');
+  document.getElementById('page3').classList.add('hidden');
 
-        previousTimeInSec = currentSec;
-      });
-    }
+  const target = document.getElementById('page' + pageNum);
+  target.classList.remove('hidden');
+}
 
-    // Render Function
-    function renderUI() {
-      const btns = document.querySelectorAll('.vehicle-btn');
-      const customInput = document.getElementById('customVehicle');
-      let match = false;
+function generateSummary() {
+  document.getElementById('sumVyjazd').textContent = '#' + vyjazdSelect.value + '. výjazd';
 
-      btns.forEach(b => {
-        if (b.dataset.v === appState.vehicle) {
-          b.classList.add('active');
-          match = true;
-        } else {
-          b.classList.remove('active');
-        }
-      });
+  document.getElementById('sumTime1').textContent = document.getElementById('time1').textContent;
+  document.getElementById('sumTime2').textContent = document.getElementById('time2').textContent;
+  document.getElementById('sumTime3').textContent = document.getElementById('time3').textContent;
+  document.getElementById('sumTime4').textContent = document.getElementById('time4').textContent;
 
-      if (!match && appState.vehicle) {
-        customInput.value = appState.vehicle;
-      }
+  if (vehicleStates.tatra) {
+    let fuel = document.getElementById('tatraFuelResult').textContent;
+    document.getElementById('sumTatraDetails').innerHTML = `
+      <div class="vehicle-summary-item"><span>Stav:</span><strong style="color:#4ade80;">Aktívne</strong></div>
+      <div class="vehicle-summary-item"><span>Posádka:</span><strong>1+${crewStates.tatra} os.</strong></div>
+      <div class="vehicle-summary-item"><span>Spotreba:</span><strong>${fuel.replace('Spolu: ', '')}</strong></div>
+    `;
+  } else {
+    document.getElementById('sumTatraDetails').innerHTML = '<span style="color:#94a3b8;">Nezúčastnilo sa výjazdu.</span>';
+  }
 
-      appState.times.forEach((t, i) => {
-        const timeEl = document.getElementById(`time-${i}`);
-        const sumEl = document.getElementById(`sumTime-${i}`);
+  if (vehicleStates.iveco) {
+    let fuel = document.getElementById('ivecoFuelResult').textContent;
+    document.getElementById('sumIvecoDetails').innerHTML = `
+      <div class="vehicle-summary-item"><span>Stav:</span><strong style="color:#4ade80;">Aktívne</strong></div>
+      <div class="vehicle-summary-item"><span>Posádka:</span><strong>1+${crewStates.iveco} os.</strong></div>
+      <div class="vehicle-summary-item"><span>Spotreba:</span><strong>${fuel.replace('Spolu: ', '')}</strong></div>
+    `;
+  } else {
+    document.getElementById('sumIvecoDetails').innerHTML = '<span style="color:#94a3b8;">Nezúčastnilo sa výjazdu.</span>';
+  }
+}
 
-        if (t) {
-          timeEl.innerText = t;
-          timeEl.classList.remove('empty');
-          sumEl.innerText = t;
-        } else {
-          timeEl.innerText = '--:--:--';
-          timeEl.classList.add('empty');
-          sumEl.innerText = '--:--:--';
-        }
-      });
-
-      document.getElementById('sumVehicle').innerText = appState.vehicle || 'Nezadané';
-      document.getElementById('summaryDate').innerText = `Dátum: ${appState.date}`;
-
-      validateTimeline();
-    }
-
-    // Reset All Data
-    function resetAll() {
-      if (confirm('Naozaj chcete vymazať všetky dáta zásahu?')) {
-        appState.vehicle = '';
-        appState.times = ['', '', '', ''];
-        appState.date = new Date().toLocaleDateString('sk-SK');
-        document.getElementById('customVehicle').value = '';
-        localStorage.removeItem('fire_app_state');
-        renderUI();
-      }
-    }
-
-    // Export PNG
-    function exportPNG() {
-      const captureArea = document.getElementById('captureArea');
-      html2canvas(captureArea, { backgroundColor: '#0d1117', scale: 2 }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `Zasah_Zapis_${appState.date.replace(/\./g, '-')}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-      });
-    }
-
-    // Web Share API
-    async function shareReport() {
-      const captureArea = document.getElementById('captureArea');
-
-      try {
-        const canvas = await html2canvas(captureArea, { backgroundColor: '#0d1117', scale: 2 });
-        canvas.toBlob(async (blob) => {
-          const file = new File([blob], `Zasah_${appState.date.replace(/\./g, '-')}.png`, { type: 'image/png' });
-
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-              files: [file],
-              title: 'Zápis o Zásahu',
-              text: `Zápis o zásahu - Jednotka: ${appState.vehicle || 'Nezadané'}`
-            });
-          } else {
-            const textSummary = `*ZÁPIS O ZÁSAHU* (${appState.date})\n` +
-              `Vozidlo: ${appState.vehicle || 'Nezadané'}\n` +
-              `Poplach: ${appState.times[0] || '--:--:--'}\n` +
-              `Výjazd: ${appState.times[1] || '--:--:--'}\n` +
-              `Príchod: ${appState.times[2] || '--:--:--'}\n` +
-              `Návrat: ${appState.times[3] || '--:--:--'}`;
-
-            await navigator.clipboard.writeText(textSummary);
-            alert('Textový prehľad zásahu bol skopírovaný do schránky!');
-          }
-        });
-      } catch (err) {
-        console.error('Share error:', err);
-      }
-    }
-
-    // FUEL CALCULATOR LOGIC (4 OPTIONS)
-    function selectFuelEq(type, element) {
-      document.querySelectorAll('.fuel-card').forEach(c => c.classList.remove('active'));
-      element.classList.add('active');
-      appState.selectedFuelEquipment = type;
-      saveToLocalStorage();
-      calculateFuel();
-    }
-
-    function calculateFuel() {
-      const hrsInput = parseFloat(document.getElementById('fuelHours').value) || 0;
-      const minsInput = parseFloat(document.getElementById('fuelMinutes').value) || 0;
-      
-      const totalHours = hrsInput + (minsInput / 60);
-      let totalLiters = 0;
-
-      // Fogyasztási normák kiszámítása
-      switch (appState.selectedFuelEquipment) {
-        case 'magirus':
-          // 1 óra = 2 liter
-          totalLiters = totalHours * 2;
-          break;
-        case 'stihl':
-          // 1 óra = 1 liter
-          totalLiters = totalHours * 1;
-          break;
-        case 'tatra':
-          // Tatra norma (25 L / óra)
-          totalLiters = totalHours * 25;
-          break;
-        case 'iveco':
-          // Iveco norma (15 L / óra)
-          totalLiters = totalHours * 15;
-          break;
-      }
-
-      document.getElementById('fuelResult').innerText = `${totalLiters.toFixed(2)} L`;
-    }
-  </script>
+function downloadReportAsImage() {
+  const card = document.getElementById('reportCard');
+ 
+  html2canvas(card, {
+    backgroundColor: '#131722',
+    scale: 2,
+    logging: false,
+    useCORS: true
+  }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = `sprava-o-vyjazde-${vyjazdSelect.value}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+}
+</script>
 </body>
 </html>

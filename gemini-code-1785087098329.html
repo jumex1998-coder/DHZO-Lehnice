@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DHZO Lehnice - Bevetési Jelentés</title>
+<style>
+body {
+background-image: url('hatterkep.jpg');
+background-size: cover;
+background-position: center;
+background-repeat: no-repeat;
+background-attachment: fixed;
+background-color: #d32f2f;
+
+color: white;
+font-family: Arial, sans-serif;
+margin: 0;
+padding: 15px;
+display: flex;
+flex-direction: column;
+min-height: 100vh;
+box-sizing: border-box;
+}
+
+.header-top {
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+padding: 5px 10px;
+font-weight: bold;
+}
+
+.brand-title {
+font-size: 1.3rem;
+color: white;
+letter-spacing: 0.5px;
+text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+}
+
+.header-right {
+display: flex;
+flex-direction: column;
+align-items: flex-end;
+gap: 5px;
+}
+
+#clock, #clock2 {
+font-size: 1.4rem;
+text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+}
+
+.vyjazd-box {
+background-color: rgba(0, 0, 0, 0.4);
+border: 1px solid white;
+border-radius: 6px;
+padding: 4px 8px;
+display: flex;
+align-items: center;
+gap: 5px;
+font-size: 0.9rem;
+}
+
+.vyjazd-box select {
+background: white;
+color: #d32f2f;
+border: none;
+padding: 2px 5px;
+border-radius: 4px;
+font-weight: bold;
+font-size: 0.9rem;
+cursor: pointer;
+}
+
+main {
+flex: 1;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+gap: 12px;
+width: 100%;
+max-width: 600px;
+margin: 0 auto;
+}
+
+.card {
+background-color: rgba(0, 0, 0, 0.5);
+border: 2px solid white;
+border-radius: 12px;
+width: 100%;
+padding: 15px;
+text-align: center;
+cursor: pointer;
+transition: background-color 0.2s, transform 0.1s;
+box-sizing: border-box;
+backdrop-filter: blur(2px);
+}
+
+.card:active {
+transform: scale(0.98);
+}
+
+.card:hover {
+background-color: rgba(0, 0, 0, 0.7);
+}
+
+.card-title {
+font-size: 1.5rem;
+font-weight: bold;
+margin-bottom: 6px;
+text-transform: uppercase;
+}
+
+.card-time {
+font-size: 1.2rem;
+min-height: 1.5rem;
+}
+
+.grid-row {
+display: flex;
+gap: 15px;
+width: 100%;
+margin-bottom: 10px;
+}
+
+.vehicle-card {
+flex: 1;
+background-color: rgba(0, 0, 0, 0.5);
+border: 2px solid white;
+border-radius: 12px;
+padding: 12px;
+text-align: center;
+box-sizing: border-box;
+display: flex;
+flex-direction: column;
+gap: 10px;
+position: relative;
+transition: opacity 0.3s, background-color 0.3s;
+backdrop-filter: blur(2px);
+}
+
+.power-toggle {
+position: absolute;
+top: 10px;
+left: 10px;
+width: 24px;
+height: 24px;
+border-radius: 4px;
+border: 2px solid white;
+cursor: pointer;
+background-color: #d32f2f;
+transition: background-color 0.2s;
+z-index: 2;
+}
+
+.power-toggle.active {
+background-color: #2e7d32;
+}
+
+.vehicle-card.disabled {
+background-color: rgba(0, 0, 0, 0.3);
+opacity: 0.6;
+}
+
+.vehicle-card.disabled * {
+pointer-events: none;
+}
+
+.vehicle-card.disabled .power-toggle {
+pointer-events: auto;
+}
+
+.vehicle-name {
+font-size: 1.1rem;
+font-weight: bold;
+text-transform: uppercase;
+margin-left: 20px;
+}
+
+.crew-box {
+background-color: rgba(255, 255, 255, 0.2);
+border: 1px solid white;
+border-radius: 8px;
+padding: 8px;
+cursor: pointer;
+text-align: center;
+transition: background-color 0.2s;
+}
+
+.crew-box:hover {
+background-color: rgba(255, 255, 255, 0.3);
+}
+
+.crew-label {
+font-size: 0.8rem;
+margin-bottom: 2px;
+opacity: 0.9;
+}
+
+.crew-value {
+font-size: 1.1rem;
+font-weight: bold;
+}
+
+.fuel-box {
+background-color: rgba(255, 255, 255, 0.2);
+border: 1px solid white;
+border-radius: 8px;
+padding: 8px;
+text-align: center;
+display: flex;
+flex-direction: column;
+gap: 5px;
+position: relative;
+overflow: hidden;
+}
+
+/* TATRA HÁTTÉRKÉP */
+.tatra-bg-fuel {
+background-image: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url('tatra.jpg');
+background-size: cover;
+background-position: center;
+filter: grayscale(100%);
+transition: filter 0.3s ease;
+}
+
+.vehicle-card:not(.disabled) .tatra-bg-fuel {
+filter: grayscale(0%);
+}
+
+/* IVECO HÁTTÉRKÉP */
+.iveco-bg-fuel {
+background-image: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url('iveco.jpg');
+background-size: cover;
+background-position: center;
+filter: grayscale(100%);
+transition: filter 0.3s ease;
+}
+
+.vehicle-card:not(.disabled) .iveco-bg-fuel {
+filter: grayscale(0%);
+}
+
+.fuel-label {
+font-size: 0.8rem;
+opacity: 0.9;
+font-weight: bold;
+text-shadow: 1px 1px 2px black;
+}
+
+.fuel-control {
+display: flex;
+justify-content: center;
+align-items: center;
+gap: 4px;
+font-size: 0.85rem;
+text-shadow: 1px 1px 2px black;
+}
+
+.fuel-control select {
+background: white;
+color: #d32f2f;
+border: none;
+padding: 3px 4px;
+border-radius: 4px;
+font-weight: bold;
+font-size: 0.85rem;
+cursor: pointer;
+}
+
+.fuel-result {
+font-size: 0.95rem;
+font-weight: bold;
+margin-top: 2px;
+background-color: rgba(0, 0, 0, 0.6);
+padding: 4px;
+border-radius: 4px;
+}
+
+#summaryCard {
+background-color: rgba(255, 255, 255, 0.95);
+color: #333;
+border-radius: 12px;
+padding: 20px;
+width: 100%;
+box-sizing: border-box;
+text-align: left;
+box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.summary-header {
+text-align: center;
+font-size: 1.3rem;
+font-weight: bold;
+color: #d32f2f;
+margin-bottom: 15px;
+border-bottom: 2px solid #d32f2f;
+padding-bottom: 8px;
+text-transform: uppercase;
+}
+
+.summary-section {
+margin-bottom: 12px;
+font-size: 0.95rem;
+line-height: 1.4;
+}
+
+.summary-section b {
+color: #d32f2f;
+}
+
+footer {
+display: flex;
+justify-content: center;
+gap: 15px;
+padding: 15px;
+}
+
+.action-btn {
+background-color: white;
+color: #d32f2f;
+border: none;
+padding: 12px 25px;
+font-size: 1.1rem;
+font-weight: bold;
+border-radius: 8px;
+cursor: pointer;
+transition: background-color 0.2s, transform 0.1s;
+box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.action-btn:hover {
+background-color: #f1f1f1;
+}
+
+.action-btn:active {
+transform: scale(0.96);
+}
+
+.hidden {
+display: none !important;
+}
+</style>
+</head>
+<body>
+
+<!-- 1. OLDAL -->
+<div id="page1" style="display: flex; flex-direction: column; flex: 1;">
+<header class="header-top">
+<div class="brand-title">DHZO Lehnice</div>
+<div class="header-right">
+<div id="clock">--:--:--</div>
+<div class="vyjazd-box">
+<span>vyjazd:</span>
+<select id="vyjazdSelect"></select>
+</div>
+</div>
+</header>
+
+<main>
+<div class="card" onclick="saveTime(1)">
+<div class="card-title">indulás</div>
+<div class="card-time" id="time1">-</div>
+</div>
+
+<div class="card" onclick="saveTime(2)">
+<div class="card-title">helyszinen</div>
+<div class="card-time" id="time2">-</div>
+</div>
+
+<div class="card" onclick="saveTime(3)">
+<div class="card-title">hazafele</div>
+<div class="card-time" id="time3">-</div>
+</div>
+
+<div class="card" onclick="saveTime(4)">
+<div class="card-title">othon</div>
+<div class="card-time" id="time4">-</div>
+</div>
+</main>
+
+<footer>
+<button class="action-btn" onclick="resetTimes()">Reset</button>
+<button class="action-btn" onclick="goToPage(2)">Tovább</button>
+</footer>
+</div>
+
+<!-- 2. OLDAL -->
+<div id="page2" class="hidden" style="display: flex; flex-direction: column; flex: 1;">
+<header class="header-top">
+<div class="brand-title">DHZO Lehnice</div>
+<div class="header-right">
+<div id="clock2">--:--:--</div>
+</div>
+</header>
+
+<main style="justify-content: flex-start; padding-top: 15px;">
+<div class="grid-row">
+<!-- Tatra CAS32 -->
+<div class="vehicle-card disabled" id="tatraCard">
+<div class="power-toggle" id="tatraToggle" onclick="toggleVehicle('tatra')"></div>
+<div class="vehicle-name">tatra cas32</div>
+<div class="crew-box" onclick="cycleCrew('tatra')">
+<div class="crew-label">Létszám</div>
+<div class="crew-value" id="crew-tatra">1+1</div>
+</div>
+<div class="fuel-box tatra-bg-fuel">
+<div class="fuel-label">Fogyasztás</div>
+<div class="fuel-control">
+<select id="tatraKm" onchange="calculateFuel('tatra')"></select>
+<span>km (5L/km)</span>
+</div>
+<div class="fuel-control">
+<select id="tatraHour" onchange="calculateFuel('tatra')"></select>
+<span>h</span>
+<select id="tatraMin" onchange="calculateFuel('tatra')"></select>
+<span>p (3L/h)</span>
+</div>
+<div class="fuel-result" id="tatraFuelResult">Összesen: 0 L</div>
+</div>
+</div>
+
+<!-- Iveco CAS15 -->
+<div class="vehicle-card disabled" id="ivecoCard">
+<div class="power-toggle" id="ivecoToggle" onclick="toggleVehicle('iveco')"></div>
+<div class="vehicle-name">iveco cas15</div>
+<div class="crew-box" onclick="cycleCrew('iveco')">
+<div class="crew-label">Létszám</div>
+<div class="crew-value" id="crew-iveco">1+1</div>
+</div>
+<div class="fuel-box iveco-bg-fuel">
+<div class="fuel-label">Fogyasztás</div>
+<div class="fuel-control">
+<select id="ivecoKm" onchange="calculateFuel('iveco')"></select>
+<span>km (2L/km)</span>
+</div>
+<div class="fuel-control">
+<select id="ivecoHour" onchange="calculateFuel('iveco')"></select>
+<span>h</span>
+<select id="ivecoMin" onchange="calculateFuel('iveco')"></select>
+<span>p (1L/h)</span>
+</div>
+<div class="fuel-result" id="ivecoFuelResult">Összesen: 0 L</div>
+</div>
+</div>
+</div>
+</main>
+
+<footer>
+<button class="action-btn" onclick="goToPage(1)">Vissza</button>
+<button class="action-btn" onclick="generateSummary(); goToPage(3);">Tovább</button>
+</footer>
+</div>
+
+<!-- 3. OLDAL -->
+<div id="page3" class="hidden" style="display: flex; flex-direction: column; flex: 1;">
+<header class="header-top">
+<div class="brand-title">DHZO Lehnice</div>
+<div class="header-right">
+<div style="font-size: 1.1rem; font-weight: bold; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">Jelentés</div>
+</div>
+</header>
+
+<main style="justify-content: flex-start; padding-top: 10px;">
+<div id="summaryCard">
+<div class="summary-header">Bevetési Jelentés</div>
+<div class="summary-section" id="sumVyjazd"><b>Bevetés:</b> -</div>
+<div class="summary-section" id="sumTimes"><b>Időpontok:</b><br>-</div>
+<hr style="border: 0; border-top: 1px solid #ddd; margin: 10px 0;">
+<div class="summary-section" id="sumTatra"><b>Tatra CAS32:</b><br>Kikapcsolva</div>
+<hr style="border: 0; border-top: 1px solid #ddd; margin: 10px 0;">
+<div class="summary-section" id="sumIveco"><b>Iveco CAS15:</b><br>Kikapcsolva</div>
+</div>
+</main>
+
+<footer>
+<button class="action-btn" onclick="goToPage(2)">Vissza</button>
+<button class="action-btn" onclick="downloadAsTextOrFile()" style="background-color: #2e7d32; color: white;">Mentés letöltésként</button>
+</footer>
+</div>
+
+<script>
+const vyjazdSelect = document.getElementById('vyjazdSelect');
+const tatraKmSelect = document.getElementById('tatraKm');
+const tatraHourSelect = document.getElementById('tatraHour');
+const tatraMinSelect = document.getElementById('tatraMin');
+const ivecoKmSelect = document.getElementById('ivecoKm');
+const ivecoHourSelect = document.getElementById('ivecoHour');
+const ivecoMinSelect = document.getElementById('ivecoMin');
+
+for (let i = 1; i <= 100; i++) {
+let opt1 = document.createElement('option');
+opt1.value = i; opt1.textContent = i;
+vyjazdSelect.appendChild(opt1);
+
+let opt2 = document.createElement('option');
+opt2.value = i; opt2.textContent = i;
+tatraKmSelect.appendChild(opt2);
+
+let opt3 = document.createElement('option');
+opt3.value = i; opt3.textContent = i;
+ivecoKmSelect.appendChild(opt3);
+}
+
+for (let h = 0; h <= 24; h++) {
+let optH1 = document.createElement('option');
+optH1.value = h; optH1.textContent = h;
+tatraHourSelect.appendChild(optH1);
+
+let optH2 = document.createElement('option');
+optH2.value = h; optH2.textContent = h;
+ivecoHourSelect.appendChild(optH2);
+}
+
+const minutes = [0, 15, 30, 45];
+minutes.forEach(m => {
+let optM1 = document.createElement('option');
+optM1.value = m; optM1.textContent = m < 10 ? '0' + m : m;
+tatraMinSelect.appendChild(optM1);
+
+let optM2 = document.createElement('option');
+optM2.value = m; optM2.textContent = m < 10 ? '0' + m : m;
+ivecoMinSelect.appendChild(optM2);
+});
+
+tatraKmSelect.value = 1;
+tatraHourSelect.value = 0;
+tatraMinSelect.value = 0;
+ivecoKmSelect.value = 1;
+ivecoHourSelect.value = 0;
+ivecoMinSelect.value = 0;
+
+let vehicleStates = { tatra: false, iveco: false };
+
+function toggleVehicle(vehicle) {
+vehicleStates[vehicle] = !vehicleStates[vehicle];
+const card = document.getElementById(vehicle + 'Card');
+const toggle = document.getElementById(vehicle + 'Toggle');
+
+if (vehicleStates[vehicle]) {
+card.classList.remove('disabled');
+toggle.classList.add('active');
+calculateFuel(vehicle);
+} else {
+card.classList.add('disabled');
+toggle.classList.remove('active');
+document.getElementById(vehicle + 'FuelResult').textContent = 'Összesen: 0 L';
+}
+}
+
+function updateClock() {
+const now = new Date();
+const options = { timeZone: 'Europe/Bratislava', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+const timeString = new Intl.DateTimeFormat('sk-SK', options).format(now);
+document.getElementById('clock').textContent = timeString;
+document.getElementById('clock2').textContent = timeString;
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+
+function saveTime(cardNumber) {
+const now = new Date();
+const options = { timeZone: 'Europe/Bratislava', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+const timeString = new Intl.DateTimeFormat('sk-SK', options).format(now);
+document.getElementById('time' + cardNumber).textContent = timeString;
+}
+
+function resetTimes() {
+for (let i = 1; i <= 4; i++) {
+document.getElementById('time' + i).textContent = '-';
+}
+vyjazdSelect.value = 1;
+
+if (vehicleStates.tatra) toggleVehicle('tatra');
+if (vehicleStates.iveco) toggleVehicle('iveco');
+
+tatraKmSelect.value = 1;
+tatraHourSelect.value = 0;
+tatraMinSelect.value = 0;
+ivecoKmSelect.value = 1;
+ivecoHourSelect.value = 0;
+ivecoMinSelect.value = 0;
+}
+
+function goToPage(pageNum) {
+document.getElementById('page1').classList.add('hidden');
+document.getElementById('page1').style.display = 'none';
+document.getElementById('page2').classList.add('hidden');
+document.getElementById('page2').style.display = 'none';
+document.getElementById('page3').classList.add('hidden');
+document.getElementById('page3').style.display = 'none';
+
+const target = document.getElementById('page' + pageNum);
+target.classList.remove('hidden');
+target.style.display = 'flex';
+}
+
+let crewStates = { tatra: 1, iveco: 1 };
+
+function cycleCrew(vehicle) {
+if (vehicle === 'tatra') {
+crewStates.tatra++;
+if (crewStates.tatra > 3) crewStates.tatra = 1;
+document.getElementById('crew-tatra').textContent = '1+' + crewStates.tatra;
+} else if (vehicle === 'iveco') {
+crewStates.iveco++;
+if (crewStates.iveco > 5) crewStates.iveco = 1;
+document.getElementById('crew-iveco').textContent = '1+' + crewStates.iveco;
+}
+}
+
+function calculateFuel(vehicle) {
+if (!vehicleStates[vehicle]) return;
+
+if (vehicle === 'tatra') {
+let km = parseInt(tatraKmSelect.value);
+let hours = parseInt(tatraHourSelect.value);
+let minutes = parseInt(tatraMinSelect.value);
+
+let totalHours = hours + (minutes / 60);
+let total = (km * 5) + (totalHours * 3);
+
+let rounded = total % 1 === 0 ? total : total.toFixed(1);
+document.getElementById('tatraFuelResult').textContent = 'Összesen: ' + rounded + ' L';
+} else if (vehicle === 'iveco') {
+let km = parseInt(ivecoKmSelect.value);
+let hours = parseInt(ivecoHourSelect.value);
+let minutes = parseInt(ivecoMinSelect.value);
+
+let totalHours = hours + (minutes / 60);
+let total = (km * 2) + (totalHours * 1);
+
+let rounded = total % 1 === 0 ? total : total.toFixed(1);
+document.getElementById('ivecoFuelResult').textContent = 'Összesen: ' + rounded + ' L';
+}
+}
+
+function generateSummary() {
+let vyjazdNum = vyjazdSelect.value;
+document.getElementById('sumVyjazd').innerHTML = `<b>Bevetési sorszám:</b> #${vyjazdNum}. vyjazd`;
+
+let t1 = document.getElementById('time1').textContent;
+let t2 = document.getElementById('time2').textContent;
+let t3 = document.getElementById('time3').textContent;
+let t4 = document.getElementById('time4').textContent;
+
+document.getElementById('sumTimes').innerHTML = `
+• Indulás: <b>${t1}</b><br>
+• Helyszínen: <b>${t2}</b><br>
+• Hazafele: <b>${t3}</b><br>
+• Othon: <b>${t4}</b>
+`;
+
+let sumTatraEl = document.getElementById('sumTatra');
+if (vehicleStates.tatra) {
+let crew = document.getElementById('crew-tatra').textContent;
+let res = document.getElementById('tatraFuelResult').textContent;
+sumTatraEl.innerHTML = `<b>Tatra CAS32:</b><br>• Létszám: <b>1+${crew.split('+')[1]}</b><br>• <b>${res}</b>`;
+} else {
+sumTatraEl.innerHTML = `<b>Tatra CAS32:</b> Nem vett részt a bevetésen.`;
+}
+
+let sumIvecoEl = document.getElementById('sumIveco');
+if (vehicleStates.iveco) {
+let crew = document.getElementById('crew-iveco').textContent;
+let res = document.getElementById('ivecoFuelResult').textContent;
+sumIvecoEl.innerHTML = `<b>Iveco CAS15:</b><br>• Létszám: <b>1+${crew.split('+')[1]}</b><br>• <b>${res}</b>`;
+} else {
+sumIvecoEl.innerHTML = `<b>Iveco CAS15:</b> Nem vett részt a bevetésen.`;
+}
+}
+
+function downloadAsTextOrFile() {
+let reportText = "DHZO LEHNICE - BEVETÉSI JELENTÉS\n";
+reportText += "==================================\n";
+reportText += document.getElementById('sumVyjazd').innerText + "\n\n";
+reportText += "IDŐPONTOK:\n" + document.getElementById('sumTimes').innerText.replace(/• /g, "- ") + "\n\n";
+reportText += "JÁRMŰVEK:\n";
+reportText += "- " + document.getElementById('sumTatra').innerText.replace(/<br>/g, "\n ") + "\n";
+reportText += "- " + document.getElementById('sumIveco').innerText.replace(/<br>/g, "\n ") + "\n";
+
+let blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });
+let link = document.createElement('a');
+link.href = URL.createObjectURL(blob);
+link.download = 'bevetesi-jelentes.txt';
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+}
+</script>
+</body>
+</html>

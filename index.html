@@ -1,181 +1,1170 @@
 <!DOCTYPE html>
-<html lang="hu">
+<html lang="sk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Helyi Adatlap (Mentéssel)</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-        }
-        .card {
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            max-width: 500px;
-            width: 100%;
-        }
-        h2 {
-            color: #333;
-            margin-top: 0;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 10px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #555;
-        }
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
-        .counter-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .btn {
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .btn-primary { background-color: #007bff; color: white; }
-        .btn-primary:hover { background-color: #0056b3; }
-        .btn-reset { background-color: #dc3545; color: white; margin-top: 20px; width: 100%; }
-        .btn-reset:hover { background-color: #a71d2a; }
-        .status-bar {
-            font-size: 13px;
-            color: #28a745;
-            margin-top: 15px;
-            text-align: right;
-            font-weight: bold;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DHZO Lehnice - Správa o výjazde</title>
+<!-- Google Fonts & FontAwesome / html2canvas -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+:root {
+  --primary: #dc2626;
+  --primary-hover: #b91c1c;
+  --primary-dark: #991b1b;
+  --accent: #f59e0b;
+  --success: #16a34a;
+  --bg-overlay: rgba(15, 17, 23, 0.78);
+  --glass-bg: rgba(22, 27, 38, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-card: rgba(30, 36, 51, 0.75);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --shadow-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background:
+    linear-gradient(rgba(10, 12, 18, 0.82), rgba(10, 12, 18, 0.85)),
+    url('https://i.imgur.com/icboMcv.jpg') center/cover no-repeat fixed;
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 15px;
+}
+
+.app-container {
+  max-width: 650px;
+  width: 100%;
+  margin: 0 auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+header.header-top {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-glow);
+  margin-bottom: 20px;
+}
+
+.brand-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-icon {
+  width: auto;
+  padding: 0 10px;
+  height: 38px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.brand-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+}
+
+.brand-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.clock-display {
+  font-family: monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 1px;
+}
+
+.vyjazd-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(220, 38, 38, 0.15);
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fca5a5;
+}
+
+.vyjazd-badge select {
+  background: transparent;
+  color: #ffffff;
+  border: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.vyjazd-badge select option {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.card {
+  background: var(--glass-card);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--primary);
+  opacity: 0.6;
+  transition: all 0.2s;
+}
+
+.card:hover {
+  background: rgba(38, 46, 64, 0.85);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.card:hover::before {
+  opacity: 1;
+  width: 6px;
+}
+
+.card:active {
+  transform: scale(0.98);
+}
+
+.card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-title {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.card-subtitle-hint {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.card-time-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-time-badge {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-family: monospace;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f8fafc;
+  min-width: 95px;
+  text-align: center;
+}
+
+.card-time-badge.active {
+  background: rgba(22, 163, 74, 0.2);
+  border-color: rgba(34, 197, 94, 0.5);
+  color: #4ade80;
+}
+
+.edit-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm);
+  color: #ffffff;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-btn:hover {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: rgba(245, 158, 11, 0.6);
+  transform: scale(1.05);
+}
+
+.grid-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  width: 100%;
+}
+
+@media (max-width: 520px) {
+  .grid-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vehicle-card {
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+#tatraCard {
+  background:
+    linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)),
+    url('https://i.imgur.com/5aFtdhe.jpg') center/cover no-repeat;
+}
+
+#ivecoCard {
+  background:
+    linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)),
+    url('https://i.imgur.com/95Rqm00.jpg') center/cover no-repeat;
+}
+
+#stihlCard {
+  background:
+    linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)),
+    url('https://i.imgur.com/j3Kl1u5.jpg') center/cover no-repeat;
+}
+
+#magirusCard {
+  background:
+    linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)),
+    url('https://i.imgur.com/yBsv8ZH.jpg') center/cover no-repeat;
+}
+
+.vehicle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.vehicle-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.power-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: #334155;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.power-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.power-switch.active {
+  background: var(--success);
+}
+
+.power-switch.active::after {
+  transform: translateX(20px);
+}
+
+.vehicle-name {
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.vehicle-card.disabled {
+  opacity: 0.5;
+  filter: grayscale(80%);
+}
+
+.vehicle-card.disabled .vehicle-content {
+  pointer-events: none;
+}
+
+.vehicle-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.crew-selector {
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.crew-selector:hover {
+  background: rgba(30, 41, 59, 0.7);
+}
+
+.crew-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.crew-value {
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 1.05rem;
+}
+
+.fuel-box {
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fuel-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.fuel-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.input-row select {
+  background: #1e293b;
+  color: #ffffff;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-weight: 700;
+  outline: none;
+}
+
+.fuel-result-badge {
+  background: rgba(220, 38, 38, 0.25);
+  border: 1px solid rgba(220, 38, 38, 0.5);
+  color: #fca5a5;
+  text-align: center;
+  padding: 6px;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  margin-top: 4px;
+}
+
+#reportCard {
+  background: linear-gradient(145deg, #1e2430, #131722);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 100%;
+  box-shadow: var(--shadow-glow);
+  position: relative;
+  overflow: hidden;
+}
+
+#reportCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary));
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+}
+
+.report-title-group h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+.report-title-group p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.report-badge-vyjazd {
+  background: var(--primary);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+}
+
+.report-section {
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+
+.report-section-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.timeline-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.time-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  padding: 4px 0;
+  border-bottom: 1px stroke rgba(255,255,255,0.05);
+}
+
+.time-item span {
+  color: var(--text-muted);
+}
+
+.time-item strong {
+  color: #ffffff;
+  font-family: monospace;
+}
+
+.vehicle-summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 0.85rem;
+}
+
+.vehicle-summary-item:not(:last-child) {
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+footer.nav-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 10px;
+}
+
+.btn {
+  flex: 1;
+  padding: 14px 20px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-secondary {
+  background: rgba(30, 41, 59, 0.8);
+  color: #f1f5f9;
+  border: 1px solid var(--glass-border);
+}
+
+.btn-secondary:hover {
+  background: rgba(51, 65, 85, 0.9);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #ef4444, var(--primary));
+  transform: translateY(-1px);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: white;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.4);
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.hidden {
+  display: none !important;
+}
+</style>
 </head>
 <body>
 
-<div class="card">
-    <h2>Adatlap (Helyi mentéssel)</h2>
+<div class="app-container">
 
-    <!-- 1. Kérdés: Szöveges mező -->
-    <div class="form-group">
-        <label for="inputName">Név / Megjegyzés:</label>
-        <input type="text" id="inputName" placeholder="Írj be valamit...">
-    </div>
-
-    <!-- 2. Kérdés: Számláló gombokkal -->
-    <div class="form-group">
-        <label>Számláló értéke:</label>
-        <div class="counter-container">
-            <button class="btn btn-primary" onclick="changeCounter(-1)">-</button>
-            <span id="counterValue" style="font-size: 22px; font-weight: bold;">0</span>
-            <button class="btn btn-primary" onclick="changeCounter(1)">+</button>
+  <!-- 1. STRÁNKA: ČASY -->
+  <div id="page1" style="display: flex; flex-direction: column; flex: 1;">
+    <header class="header-top">
+      <div class="brand-badge">
+        <div class="brand-icon">Výjazd</div>
+        <div>
+          <div class="brand-title">DHZO Lehnice</div>
+          <div class="brand-subtitle">Výjazdový systém</div>
         </div>
-    </div>
+      </div>
+      <div class="header-right">
+        <div class="clock-display" id="clock1">00:00:00</div>
+        <div class="vyjazd-badge">
+          <span>Výjazd:</span>
+          <select id="vyjazdSelect"></select>
+        </div>
+      </div>
+    </header>
 
-    <!-- 3. Kérdés: Lenyíló opció -->
-    <div class="form-group">
-        <label for="selectStatus">Státusz kiválasztása:</label>
-        <select id="selectStatus">
-            <option value="Függőben">Függőben</option>
-            <option value="Folyamatban">Folyamatban</option>
-            <option value="Kész">Kész</option>
-        </select>
-    </div>
+    <main>
+      <div class="card" onclick="saveTime(1)">
+        <div class="card-info">
+          <div class="card-title">1. Výjazd zo základne</div>
+          <div class="card-subtitle-hint">Kliknite pre zaznamenanie</div>
+        </div>
+        <div class="card-time-wrap">
+          <div class="card-time-badge" id="time1">--:--:--</div>
+          <button class="edit-btn" onclick="editTime(event, 1)" title="Ručná úprava času"></button>
+        </div>
+      </div>
 
-    <!-- Reset gomb -->
-    <button class="btn btn-reset" onclick="resetAllData()">Törlés / Reset</button>
+      <div class="card" onclick="saveTime(2)">
+        <div class="card-info">
+          <div class="card-title">2. Príjazd na miesto</div>
+          <div class="card-subtitle-hint">Kliknite pre zaznamenanie</div>
+        </div>
+        <div class="card-time-wrap">
+          <div class="card-time-badge" id="time2">--:--:--</div>
+          <button class="edit-btn" onclick="editTime(event, 2)" title="Ručná úprava času"></button>
+        </div>
+      </div>
 
-    <div class="status-bar">Automatikus helyi mentés aktív ✓</div>
+      <div class="card" onclick="saveTime(3)">
+        <div class="card-info">
+          <div class="card-title">3. Odjazd na základňu</div>
+          <div class="card-subtitle-hint">Kliknite pre zaznamenanie</div>
+        </div>
+        <div class="card-time-wrap">
+          <div class="card-time-badge" id="time3">--:--:--</div>
+          <button class="edit-btn" onclick="editTime(event, 3)" title="Ručná úprava času"></button>
+        </div>
+      </div>
+
+      <div class="card" onclick="saveTime(4)">
+        <div class="card-info">
+          <div class="card-title">4. Návrat na základňu</div>
+          <div class="card-subtitle-hint">Kliknite pre zaznamenanie</div>
+        </div>
+        <div class="card-time-wrap">
+          <div class="card-time-badge" id="time4">--:--:--</div>
+          <button class="edit-btn" onclick="editTime(event, 4)" title="Ručná úprava času"></button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="nav-footer">
+      <button class="btn btn-secondary" onclick="resetTimes()">Resetovať</button>
+      <button class="btn btn-primary" onclick="goToPage(2)">Ďalej ➔</button>
+    </footer>
+  </div>
+
+  <!-- 2. STRÁNKA: VOZIDLÁ A PALIVO -->
+  <div id="page2" class="hidden" style="display: flex; flex-direction: column; flex: 1;">
+    <header class="header-top">
+      <div class="brand-badge">
+        <div class="brand-icon">Výjazd</div>
+        <div>
+          <div class="brand-title">DHZO Lehnice</div>
+          <div class="brand-subtitle">Vozidlá a spotreba</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="clock-display" id="clock2">00:00:00</div>
+      </div>
+    </header>
+
+    <main>
+      <div class="grid-row">
+        <!-- Tatra CAS32 -->
+        <div class="vehicle-card disabled" id="tatraCard">
+          <div class="vehicle-header">
+            <div class="vehicle-title-wrap">
+              <div class="vehicle-name">Tatra CAS32</div>
+            </div>
+            <div class="power-switch" id="tatraToggle" onclick="toggleVehicle('tatra')"></div>
+          </div>
+          <div class="vehicle-content">
+            <div class="crew-selector" onclick="cycleCrew('tatra')">
+              <span class="crew-label">Posádka</span>
+              <span class="crew-value" id="crew-tatra">1+1</span>
+            </div>
+            <div class="fuel-box">
+              <div class="fuel-label">Kalkulačka spotreby</div>
+              <div class="fuel-inputs">
+                <div class="input-row">
+                  <span>Vzdialenosť (5L/km):</span>
+                  <div><select id="tatraKm" onchange="calculateFuel('tatra')"></select> km</div>
+                </div>
+                <div class="input-row">
+                  <span>Chod čerpadla (3L/h):</span>
+                  <div>
+                    <select id="tatraHour" onchange="calculateFuel('tatra')"></select> h
+                    <select id="tatraMin" onchange="calculateFuel('tatra')"></select> min
+                  </div>
+                </div>
+              </div>
+              <div class="fuel-result-badge" id="tatraFuelResult">Spolu: 0 L</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Iveco CAS15 -->
+        <div class="vehicle-card disabled" id="ivecoCard">
+          <div class="vehicle-header">
+            <div class="vehicle-title-wrap">
+              <div class="vehicle-name">Iveco CAS15</div>
+            </div>
+            <div class="power-switch" id="ivecoToggle" onclick="toggleVehicle('iveco')"></div>
+          </div>
+          <div class="vehicle-content">
+            <div class="crew-selector" onclick="cycleCrew('iveco')">
+              <span class="crew-label">Posádka</span>
+              <span class="crew-value" id="crew-iveco">1+1</span>
+            </div>
+            <div class="fuel-box">
+              <div class="fuel-label">Kalkulačka spotreby</div>
+              <div class="fuel-inputs">
+                <div class="input-row">
+                  <span>Vzdialenosť (2L/km):</span>
+                  <div><select id="ivecoKm" onchange="calculateFuel('iveco')"></select> km</div>
+                </div>
+                <div class="input-row">
+                  <span>Chod čerpadla (1L/h):</span>
+                  <div>
+                    <select id="ivecoHour" onchange="calculateFuel('iveco')"></select> h
+                    <select id="ivecoMin" onchange="calculateFuel('iveco')"></select> min
+                  </div>
+                </div>
+              </div>
+              <div class="fuel-result-badge" id="ivecoFuelResult">Spolu: 0 L</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STIHL -->
+        <div class="vehicle-card disabled" id="stihlCard">
+          <div class="vehicle-header">
+            <div class="vehicle-title-wrap">
+              <div class="vehicle-name">STIHL</div>
+            </div>
+            <div class="power-switch" id="stihlToggle" onclick="toggleVehicle('stihl')"></div>
+          </div>
+          <div class="vehicle-content">
+            <div class="fuel-box">
+              <div class="fuel-label">Kalkulačka spotreby</div>
+              <div class="fuel-inputs">
+                <div class="input-row">
+                  <span>Doba prevádzky (1L/h):</span>
+                  <div>
+                    <select id="stihlHour" onchange="calculateFuel('stihl')"></select> h
+                    <select id="stihlMin" onchange="calculateFuel('stihl')"></select> min
+                  </div>
+                </div>
+              </div>
+              <div class="fuel-result-badge" id="stihlFuelResult">Spolu: 0 L</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Magirus -->
+        <div class="vehicle-card disabled" id="magirusCard">
+          <div class="vehicle-header">
+            <div class="vehicle-title-wrap">
+              <div class="vehicle-name">Magirus</div>
+            </div>
+            <div class="power-switch" id="magirusToggle" onclick="toggleVehicle('magirus')"></div>
+          </div>
+          <div class="vehicle-content">
+            <div class="fuel-box">
+              <div class="fuel-label">Kalkulačka spotreby</div>
+              <div class="fuel-inputs">
+                <div class="input-row">
+                  <span>Doba prevádzky (2L/h):</span>
+                  <div>
+                    <select id="magirusHour" onchange="calculateFuel('magirus')"></select> h
+                    <select id="magirusMin" onchange="calculateFuel('magirus')"></select> min
+                  </div>
+                </div>
+              </div>
+              <div class="fuel-result-badge" id="magirusFuelResult">Spolu: 0 L</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="nav-footer">
+      <button class="btn btn-secondary" onclick="goToPage(1)">⬅ Späť</button>
+      <button class="btn btn-primary" onclick="generateSummary(); goToPage(3);">Súhrn ➔</button>
+    </footer>
+  </div>
+
+  <!-- 3. STRÁNKA: SPRÁVA A STIAHNUTIE OBRÁZKA -->
+  <div id="page3" class="hidden" style="display: flex; flex-direction: column; flex: 1;">
+    <header class="header-top">
+      <div class="brand-badge">
+        <div class="brand-icon">Výjazd</div>
+        <div>
+          <div class="brand-title">DHZO Lehnice</div>
+          <div class="brand-subtitle">Súhrn a uloženie</div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div id="reportCard">
+        <div class="report-header">
+          <div class="report-title-group">
+            <h2>SPRÁVA O VÝJAZDE</h2>
+            <p>Dobrovoľný hasičský zbor obce Lehnice</p>
+          </div>
+          <div class="report-badge-vyjazd" id="sumVyjazd">#1. výjazd</div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Zaznamenané časy</div>
+          <div class="timeline-grid">
+            <div class="time-item"><span>Výjazd zo základne:</span> <strong id="sumTime1">--:--:--</strong></div>
+            <div class="time-item"><span>Príjazd na miesto:</span> <strong id="sumTime2">--:--:--</strong></div>
+            <div class="time-item"><span>Odjazd na základňu:</span> <strong id="sumTime3">--:--:--</strong></div>
+            <div class="time-item"><span>Návrat na základňu:</span> <strong id="sumTime4">--:--:--</strong></div>
+          </div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Tatra CAS32</div>
+          <div id="sumTatraDetails">Nezúčastnilo sa výjazdu.</div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Iveco CAS15</div>
+          <div id="sumIvecoDetails">Nezúčastnilo sa výjazdu.</div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">STIHL</div>
+          <div id="sumStihlDetails">Nezúčastnilo sa výjazdu.</div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Magirus</div>
+          <div id="sumMagirusDetails">Nezúčastnilo sa výjazdu.</div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="nav-footer">
+      <button class="btn btn-secondary" onclick="goToPage(2)">⬅ Späť</button>
+      <button class="btn btn-success" onclick="downloadReportAsImage()">Odoslať / Stiahnuť (PNG)</button>
+    </footer>
+  </div>
+
 </div>
 
 <script>
-    // Alapértelmezett adatok
-    const defaultData = {
-        name: "",
-        counter: 0,
-        status: "Függőben"
-    };
+function updateClock() {
+  const now = new Date();
+  const options = { timeZone: 'Europe/Bratislava', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+  const timeString = new Intl.DateTimeFormat('sk-SK', options).format(now);
+  document.getElementById('clock1').textContent = timeString;
+  document.getElementById('clock2').textContent = timeString;
+}
+setInterval(updateClock, 1000);
+updateClock();
 
-    let appData = { ...defaultData };
+const vyjazdSelect = document.getElementById('vyjazdSelect');
+const tatraKmSelect = document.getElementById('tatraKm');
+const tatraHourSelect = document.getElementById('tatraHour');
+const tatraMinSelect = document.getElementById('tatraMin');
 
-    // DOM elemek
-    const inputName = document.getElementById("inputName");
-    const counterValue = document.getElementById("counterValue");
-    const selectStatus = document.getElementById("selectStatus");
+const ivecoKmSelect = document.getElementById('ivecoKm');
+const ivecoHourSelect = document.getElementById('ivecoHour');
+const ivecoMinSelect = document.getElementById('ivecoMin');
 
-    // 1. Adatok betöltése megnyitáskor a böngésző memóriájából
-    function loadData() {
-        const saved = localStorage.getItem("my_simple_app_data");
-        if (saved) {
-            try {
-                appData = JSON.parse(saved);
-            } catch (e) {
-                console.error("Hiba az adatok betöltésekor:", e);
-            }
+const stihlHourSelect = document.getElementById('stihlHour');
+const stihlMinSelect = document.getElementById('stihlMin');
+
+const magirusHourSelect = document.getElementById('magirusHour');
+const magirusMinSelect = document.getElementById('magirusMin');
+
+for (let i = 1; i <= 100; i++) {
+  let opt1 = document.createElement('option'); opt1.value = i; opt1.textContent = i;
+  vyjazdSelect.appendChild(opt1);
+  let opt2 = document.createElement('option'); opt2.value = i; opt2.textContent = i;
+  tatraKmSelect.appendChild(opt2);
+  let opt3 = document.createElement('option'); opt3.value = i; opt3.textContent = i;
+  ivecoKmSelect.appendChild(opt3);
+}
+
+for (let h = 0; h <= 24; h++) {
+  let optH1 = document.createElement('option'); optH1.value = h; optH1.textContent = h;
+  tatraHourSelect.appendChild(optH1);
+  let optH2 = document.createElement('option'); optH2.value = h; optH2.textContent = h;
+  ivecoHourSelect.appendChild(optH2);
+  let optH3 = document.createElement('option'); optH3.value = h; optH3.textContent = h;
+  stihlHourSelect.appendChild(optH3);
+  let optH4 = document.createElement('option'); optH4.value = h; optH4.textContent = h;
+  magirusHourSelect.appendChild(optH4);
+}
+
+[0, 15, 30, 45].forEach(m => {
+  let optM1 = document.createElement('option'); optM1.value = m; optM1.textContent = m < 10 ? '0' + m : m;
+  tatraMinSelect.appendChild(optM1);
+  let optM2 = document.createElement('option'); optM2.value = m; optM2.textContent = m < 10 ? '0' + m : m;
+  ivecoMinSelect.appendChild(optM2);
+  let optM3 = document.createElement('option'); optM3.value = m; optM3.textContent = m < 10 ? '0' + m : m;
+  stihlMinSelect.appendChild(optM3);
+  let optM4 = document.createElement('option'); optM4.value = m; optM4.textContent = m < 10 ? '0' + m : m;
+  magirusMinSelect.appendChild(optM4);
+});
+
+tatraKmSelect.value = 1; tatraHourSelect.value = 0; tatraMinSelect.value = 0;
+ivecoKmSelect.value = 1; ivecoHourSelect.value = 0; ivecoMinSelect.value = 0;
+stihlHourSelect.value = 0; stihlMinSelect.value = 0;
+magirusHourSelect.value = 0; magirusMinSelect.value = 0;
+
+let vehicleStates = { tatra: false, iveco: false, stihl: false, magirus: false };
+let crewStates = { tatra: 1, iveco: 1 };
+
+function toggleVehicle(vehicle) {
+  vehicleStates[vehicle] = !vehicleStates[vehicle];
+  const card = document.getElementById(vehicle + 'Card');
+  const toggle = document.getElementById(vehicle + 'Toggle');
+
+  if (vehicleStates[vehicle]) {
+    card.classList.remove('disabled');
+    toggle.classList.add('active');
+    calculateFuel(vehicle);
+  } else {
+    card.classList.add('disabled');
+    toggle.classList.remove('active');
+    document.getElementById(vehicle + 'FuelResult').textContent = 'Spolu: 0 L';
+  }
+}
+
+function cycleCrew(vehicle) {
+  if (vehicle === 'tatra') {
+    crewStates.tatra = (crewStates.tatra % 3) + 1;
+    document.getElementById('crew-tatra').textContent = '1+' + crewStates.tatra;
+  } else if (vehicle === 'iveco') {
+    crewStates.iveco = (crewStates.iveco % 5) + 1;
+    document.getElementById('crew-iveco').textContent = '1+' + crewStates.iveco;
+  }
+}
+
+function calculateFuel(vehicle) {
+  if (!vehicleStates[vehicle]) return;
+
+  if (vehicle === 'tatra') {
+    let km = parseInt(tatraKmSelect.value);
+    let hours = parseInt(tatraHourSelect.value);
+    let minutes = parseInt(tatraMinSelect.value);
+    let totalHours = hours + (minutes / 60);
+    let total = (km * 5) + (totalHours * 3);
+    document.getElementById('tatraFuelResult').textContent = 'Spolu: ' + (total % 1 === 0 ? total : total.toFixed(1)) + ' L';
+  } else if (vehicle === 'iveco') {
+    let km = parseInt(ivecoKmSelect.value);
+    let hours = parseInt(ivecoHourSelect.value);
+    let minutes = parseInt(ivecoMinSelect.value);
+    let totalHours = hours + (minutes / 60);
+    let total = (km * 2) + (totalHours * 1);
+    document.getElementById('ivecoFuelResult').textContent = 'Spolu: ' + (total % 1 === 0 ? total : total.toFixed(1)) + ' L';
+  } else if (vehicle === 'stihl') {
+    let hours = parseInt(stihlHourSelect.value);
+    let minutes = parseInt(stihlMinSelect.value);
+    let totalHours = hours + (minutes / 60);
+    let total = totalHours * 1; // 1 L/h
+    document.getElementById('stihlFuelResult').textContent = 'Spolu: ' + (total % 1 === 0 ? total : total.toFixed(1)) + ' L';
+  } else if (vehicle === 'magirus') {
+    let hours = parseInt(magirusHourSelect.value);
+    let minutes = parseInt(magirusMinSelect.value);
+    let totalHours = hours + (minutes / 60);
+    let total = totalHours * 2; // 2 L/h
+    document.getElementById('magirusFuelResult').textContent = 'Spolu: ' + (total % 1 === 0 ? total : total.toFixed(1)) + ' L';
+  }
+}
+
+function saveTime(cardNumber) {
+  const now = new Date();
+  const options = { timeZone: 'Europe/Bratislava', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+  const timeString = new Intl.DateTimeFormat('sk-SK', options).format(now);
+  const badge = document.getElementById('time' + cardNumber);
+  badge.textContent = timeString;
+  badge.classList.add('active');
+}
+
+function editTime(event, cardNumber) {
+  event.stopPropagation();
+  const badge = document.getElementById('time' + cardNumber);
+  const currentVal = badge.textContent === '--:--:--' ? '00:00:00' : badge.textContent;
+ 
+  const newTime = prompt('Upravte čas (hh:mm:ss):', currentVal);
+  if (newTime !== null && newTime.trim() !== '') {
+    badge.textContent = newTime.trim();
+    badge.classList.add('active');
+  }
+}
+
+function resetTimes() {
+  for (let i = 1; i <= 4; i++) {
+    const badge = document.getElementById('time' + i);
+    badge.textContent = '--:--:--';
+    badge.classList.remove('active');
+  }
+  vyjazdSelect.value = 1;
+  if (vehicleStates.tatra) toggleVehicle('tatra');
+  if (vehicleStates.iveco) toggleVehicle('iveco');
+  if (vehicleStates.stihl) toggleVehicle('stihl');
+  if (vehicleStates.magirus) toggleVehicle('magirus');
+}
+
+function goToPage(pageNum) {
+  document.getElementById('page1').classList.add('hidden');
+  document.getElementById('page2').classList.add('hidden');
+  document.getElementById('page3').classList.add('hidden');
+
+  const target = document.getElementById('page' + pageNum);
+  target.classList.remove('hidden');
+}
+
+function generateSummary() {
+  document.getElementById('sumVyjazd').textContent = '#' + vyjazdSelect.value + '. výjazd';
+
+  document.getElementById('sumTime1').textContent = document.getElementById('time1').textContent;
+  document.getElementById('sumTime2').textContent = document.getElementById('time2').textContent;
+  document.getElementById('sumTime3').textContent = document.getElementById('time3').textContent;
+  document.getElementById('sumTime4').textContent = document.getElementById('time4').textContent;
+
+  if (vehicleStates.tatra) {
+    let fuel = document.getElementById('tatraFuelResult').textContent;
+    document.getElementById('sumTatraDetails').innerHTML = `
+      <div class="vehicle-summary-item"><span>Stav:</span><strong style="color:#4ade80;">Aktívne</strong></div>
+      <div class="vehicle-summary-item"><span>Posádka:</span><strong>1+${crewStates.tatra} os.</strong></div>
+      <div class="vehicle-summary-item"><span>Spotreba:</span><strong>${fuel.replace('Spolu: ', '')}</strong></div>
+    `;
+  } else {
+    document.getElementById('sumTatraDetails').innerHTML = '<span style="color:#94a3b8;">Nezúčastnilo sa výjazdu.</span>';
+  }
+
+  if (vehicleStates.iveco) {
+    let fuel = document.getElementById('ivecoFuelResult').textContent;
+    document.getElementById('sumIvecoDetails').innerHTML = `
+      <div class="vehicle-summary-item"><span>Stav:</span><strong style="color:#4ade80;">Aktívne</strong></div>
+      <div class="vehicle-summary-item"><span>Posádka:</span><strong>1+${crewStates.iveco} os.</strong></div>
+      <div class="vehicle-summary-item"><span>Spotreba:</span><strong>${fuel.replace('Spolu: ', '')}</strong></div>
+    `;
+  } else {
+    document.getElementById('sumIvecoDetails').innerHTML = '<span style="color:#94a3b8;">Nezúčastnilo sa výjazdu.</span>';
+  }
+
+  if (vehicleStates.stihl) {
+    let fuel = document.getElementById('stihlFuelResult').textContent;
+    document.getElementById('sumStihlDetails').innerHTML = `
+      <div class="vehicle-summary-item"><span>Stav:</span><strong style="color:#4ade80;">Aktívne</strong></div>
+      <div class="vehicle-summary-item"><span>Spotreba:</span><strong>${fuel.replace('Spolu: ', '')}</strong></div>
+    `;
+  } else {
+    document.getElementById('sumStihlDetails').innerHTML = '<span style="color:#94a3b8;">Nezúčastnilo sa výjazdu.</span>';
+  }
+
+  if (vehicleStates.magirus) {
+    let fuel = document.getElementById('magirusFuelResult').textContent;
+    document.getElementById('sumMagirusDetails').innerHTML = `
+      <div class="vehicle-summary-item"><span>Stav:</span><strong style="color:#4ade80;">Aktívne</strong></div>
+      <div class="vehicle-summary-item"><span>Spotreba:</span><strong>${fuel.replace('Spolu: ', '')}</strong></div>
+    `;
+  } else {
+    document.getElementById('sumMagirusDetails').innerHTML = '<span style="color:#94a3b8;">Nezúčastnilo sa výjazdu.</span>';
+  }
+}
+
+function downloadReportAsImage() {
+  const card = document.getElementById('reportCard');
+  
+  html2canvas(card, {
+    backgroundColor: '#131722',
+    scale: 2,
+    logging: false,
+    useCORS: true
+  }).then(async canvas => {
+    const fileName = `sprava-o-vyjazde-${vyjazdSelect.value}.png`;
+    
+    // Konverzia canvasu na Blob
+    canvas.toBlob(async (blob) => {
+      const file = new File([blob], fileName, { type: 'image/png' });
+
+      // Megosztás ellenőrzése Web Share API-val (mobilokon működik jól)
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: `Správa o výjazde #${vyjazdSelect.value}`,
+            text: `Správa o výjazde DHZO Lehnice - #${vyjazdSelect.value}`
+          });
+        } catch (err) {
+          console.log('Megosztás megszakítva vagy hiba történt:', err);
         }
-        updateUI();
-    }
-
-    // 2. Adatok elmentése a böngésző memóriájába
-    function saveData() {
-        localStorage.setItem("my_simple_app_data", JSON.stringify(appData));
-    }
-
-    // 3. Felület frissítése az adatok alapján
-    function updateUI() {
-        inputName.value = appData.name || "";
-        counterValue.innerText = appData.counter || 0;
-        selectStatus.value = appData.status || "Függőben";
-    }
-
-    // 4. Eseménykezelők (amikor változtatsz valamit, azonnal ment)
-    inputName.addEventListener("input", (e) => {
-        appData.name = e.target.value;
-        saveData();
-    });
-
-    selectStatus.addEventListener("change", (e) => {
-        appData.status = e.target.value;
-        saveData();
-    });
-
-    function changeCounter(delta) {
-        appData.counter = (appData.counter || 0) + delta;
-        counterValue.innerText = appData.counter;
-        saveData();
-    }
-
-    // RESET gomb: Töröl mindent
-    function resetAllData() {
-        if (confirm("Biztosan törölni szeretnéd az összes elmentett adatot?")) {
-            appData = { ...defaultData };
-            localStorage.removeItem("my_simple_app_data");
-            updateUI();
-        }
-    }
-
-    // Indításkor adatok betöltése
-    loadData();
+      } else {
+        // Hagyományos letöltés, ha a böngésző nem támogatja a közvetlen megosztást
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      }
+    }, 'image/png');
+  });
+}
 </script>
-
 </body>
 </html>

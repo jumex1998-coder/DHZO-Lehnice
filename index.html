@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="hu">
+<html lang="sk">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DHZO Lehnice - Bevetési Jelentés</title>
+<title>DHZO Lehnice - Správa o výjazde</title>
 <!-- Google Fonts & FontAwesome / html2canvas -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -219,16 +219,22 @@ main {
   color: #64748b;
 }
 
+.card-time-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .card-time-badge {
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 8px 16px;
+  padding: 8px 14px;
   border-radius: var(--radius-sm);
   font-family: monospace;
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: #f8fafc;
-  min-width: 100px;
+  min-width: 95px;
   text-align: center;
 }
 
@@ -236,6 +242,26 @@ main {
   background: rgba(22, 163, 74, 0.2);
   border-color: rgba(34, 197, 94, 0.5);
   color: #4ade80;
+}
+
+.edit-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm);
+  color: #ffffff;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-btn:hover {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: rgba(245, 158, 11, 0.6);
+  transform: scale(1.05);
 }
 
 .grid-row {
@@ -263,7 +289,6 @@ main {
   box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
-/* JÁRMŰ KÁRTYÁK EGYEDI HÁTTÉRKÉPEI */
 #tatraCard {
   background: 
     linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)), 
@@ -601,20 +626,20 @@ footer.nav-footer {
 
 <div class="app-container">
 
-  <!-- 1. OLDAL: IDŐPONTOK -->
+  <!-- 1. STRÁNKA: ČASY -->
   <div id="page1" style="display: flex; flex-direction: column; flex: 1;">
     <header class="header-top">
       <div class="brand-badge">
         <div class="brand-icon">Výjazd</div>
         <div>
           <div class="brand-title">DHZO Lehnice</div>
-          <div class="brand-subtitle">Bevetési Rendszer</div>
+          <div class="brand-subtitle">Výjazdový systém</div>
         </div>
       </div>
       <div class="header-right">
         <div class="clock-display" id="clock1">00:00:00</div>
         <div class="vyjazd-badge">
-          <span>Bevetés:</span>
+          <span>Výjazd:</span>
           <select id="vyjazdSelect"></select>
         </div>
       </div>
@@ -623,51 +648,63 @@ footer.nav-footer {
     <main>
       <div class="card" onclick="saveTime(1)">
         <div class="card-info">
-          <div class="card-title">1. Indulás</div>
-          <div class="card-subtitle-hint">Kattints a rögzítéshez</div>
+          <div class="card-title">1. Výjazd zo základne</div>
+          <div class="card-subtitle-hint">Kliknite pre zaznamenanie</div>
         </div>
-        <div class="card-time-badge" id="time1">--:--:--</div>
+        <div class="card-time-wrap">
+          <div class="card-time-badge" id="time1">--:--:--</div>
+          <button class="edit-btn" onclick="editTime(event, 1)" title="Ručná úprava času">✏️</button>
+        </div>
       </div>
 
       <div class="card" onclick="saveTime(2)">
         <div class="card-info">
-          <div class="card-title">2. Helyszínen</div>
-          <div class="card-subtitle-hint">Kattints a rögzítéshez</div>
+          <div class="card-title">2. Príjazd na miesto</div>
+          <div class="card-subtitle-hint">Kliknite pre zaznamenanie</div>
         </div>
-        <div class="card-time-badge" id="time2">--:--:--</div>
+        <div class="card-time-wrap">
+          <div class="card-time-badge" id="time2">--:--:--</div>
+          <button class="edit-btn" onclick="editTime(event, 2)" title="Ručná úprava času">✏️</button>
+        </div>
       </div>
 
       <div class="card" onclick="saveTime(3)">
         <div class="card-info">
-          <div class="card-title">3. Hazafele</div>
-          <div class="card-subtitle-hint">Kattints a rögzítéshez</div>
+          <div class="card-title">3. Odjazd na základňu</div>
+          <div class="card-subtitle-hint">Kliknite pre zaznamenanie</div>
         </div>
-        <div class="card-time-badge" id="time3">--:--:--</div>
+        <div class="card-time-wrap">
+          <div class="card-time-badge" id="time3">--:--:--</div>
+          <button class="edit-btn" onclick="editTime(event, 3)" title="Ručná úprava času">✏️</button>
+        </div>
       </div>
 
       <div class="card" onclick="saveTime(4)">
         <div class="card-info">
-          <div class="card-title">4. Otthon</div>
-          <div class="card-subtitle-hint">Kattints a rögzítéshez</div>
+          <div class="card-title">4. Návrat na základňu</div>
+          <div class="card-subtitle-hint">Kliknite pre zaznamenanie</div>
         </div>
-        <div class="card-time-badge" id="time4">--:--:--</div>
+        <div class="card-time-wrap">
+          <div class="card-time-badge" id="time4">--:--:--</div>
+          <button class="edit-btn" onclick="editTime(event, 4)" title="Ručná úprava času">✏️</button>
+        </div>
       </div>
     </main>
 
     <footer class="nav-footer">
-      <button class="btn btn-secondary" onclick="resetTimes()">Újra (Reset)</button>
-      <button class="btn btn-primary" onclick="goToPage(2)">Tovább ➔</button>
+      <button class="btn btn-secondary" onclick="resetTimes()">Resetovať</button>
+      <button class="btn btn-primary" onclick="goToPage(2)">Ďalej ➔</button>
     </footer>
   </div>
 
-  <!-- 2. OLDAL: JÁRMŰVEK ÉS ÜZEMANYAG -->
+  <!-- 2. STRÁNKA: VOZIDLÁ A PALIVO -->
   <div id="page2" class="hidden" style="display: flex; flex-direction: column; flex: 1;">
     <header class="header-top">
       <div class="brand-badge">
         <div class="brand-icon">Výjazd</div>
         <div>
           <div class="brand-title">DHZO Lehnice</div>
-          <div class="brand-subtitle">Járművek és Fogyasztás</div>
+          <div class="brand-subtitle">Vozidlá a spotreba</div>
         </div>
       </div>
       <div class="header-right">
@@ -687,25 +724,25 @@ footer.nav-footer {
           </div>
           <div class="vehicle-content">
             <div class="crew-selector" onclick="cycleCrew('tatra')">
-              <span class="crew-label">Létszám</span>
+              <span class="crew-label">Posádka</span>
               <span class="crew-value" id="crew-tatra">1+1</span>
             </div>
             <div class="fuel-box">
-              <div class="fuel-label">Fogyasztás számító</div>
+              <div class="fuel-label">Kalkulačka spotreby</div>
               <div class="fuel-inputs">
                 <div class="input-row">
-                  <span>Távolság (5L/km):</span>
+                  <span>Vzdialenosť (5L/km):</span>
                   <div><select id="tatraKm" onchange="calculateFuel('tatra')"></select> km</div>
                 </div>
                 <div class="input-row">
-                  <span>Működés (3L/h):</span>
+                  <span>Chod čerpadla (3L/h):</span>
                   <div>
                     <select id="tatraHour" onchange="calculateFuel('tatra')"></select> h
-                    <select id="tatraMin" onchange="calculateFuel('tatra')"></select> p
+                    <select id="tatraMin" onchange="calculateFuel('tatra')"></select> min
                   </div>
                 </div>
               </div>
-              <div class="fuel-result-badge" id="tatraFuelResult">Összesen: 0 L</div>
+              <div class="fuel-result-badge" id="tatraFuelResult">Spolu: 0 L</div>
             </div>
           </div>
         </div>
@@ -720,25 +757,25 @@ footer.nav-footer {
           </div>
           <div class="vehicle-content">
             <div class="crew-selector" onclick="cycleCrew('iveco')">
-              <span class="crew-label">Létszám</span>
+              <span class="crew-label">Posádka</span>
               <span class="crew-value" id="crew-iveco">1+1</span>
             </div>
             <div class="fuel-box">
-              <div class="fuel-label">Fogyasztás számító</div>
+              <div class="fuel-label">Kalkulačka spotreby</div>
               <div class="fuel-inputs">
                 <div class="input-row">
-                  <span>Távolság (2L/km):</span>
+                  <span>Vzdialenosť (2L/km):</span>
                   <div><select id="ivecoKm" onchange="calculateFuel('iveco')"></select> km</div>
                 </div>
                 <div class="input-row">
-                  <span>Működés (1L/h):</span>
+                  <span>Chod čerpadla (1L/h):</span>
                   <div>
                     <select id="ivecoHour" onchange="calculateFuel('iveco')"></select> h
-                    <select id="ivecoMin" onchange="calculateFuel('iveco')"></select> p
+                    <select id="ivecoMin" onchange="calculateFuel('iveco')"></select> min
                   </div>
                 </div>
               </div>
-              <div class="fuel-result-badge" id="ivecoFuelResult">Összesen: 0 L</div>
+              <div class="fuel-result-badge" id="ivecoFuelResult">Spolu: 0 L</div>
             </div>
           </div>
         </div>
@@ -746,19 +783,19 @@ footer.nav-footer {
     </main>
 
     <footer class="nav-footer">
-      <button class="btn btn-secondary" onclick="goToPage(1)">⬅ Vissza</button>
-      <button class="btn btn-primary" onclick="generateSummary(); goToPage(3);">Összegzés ➔</button>
+      <button class="btn btn-secondary" onclick="goToPage(1)">⬅ Späť</button>
+      <button class="btn btn-primary" onclick="generateSummary(); goToPage(3);">Súhrn ➔</button>
     </footer>
   </div>
 
-  <!-- 3. OLDAL: JELENTÉS ÉS KÉP LETÖLTÉS -->
+  <!-- 3. STRÁNKA: SPRÁVA A STIAHNUTIE OBRÁZKA -->
   <div id="page3" class="hidden" style="display: flex; flex-direction: column; flex: 1;">
     <header class="header-top">
       <div class="brand-badge">
         <div class="brand-icon">Výjazd</div>
         <div>
           <div class="brand-title">DHZO Lehnice</div>
-          <div class="brand-subtitle">Összegzés és Mentés</div>
+          <div class="brand-subtitle">Súhrn a uloženie</div>
         </div>
       </div>
     </header>
@@ -767,37 +804,37 @@ footer.nav-footer {
       <div id="reportCard">
         <div class="report-header">
           <div class="report-title-group">
-            <h2>BEVETÉSI JELENTÉS</h2>
+            <h2>SPRÁVA O VÝJAZDE</h2>
             <p>Dobrovoľný hasičský zbor obce Lehnice</p>
           </div>
           <div class="report-badge-vyjazd" id="sumVyjazd">#1. výjazd</div>
         </div>
 
         <div class="report-section">
-          <div class="report-section-title">⏱️ Rögzített Időpontok</div>
+          <div class="report-section-title">⏱️ Zaznamenané časy</div>
           <div class="timeline-grid">
-            <div class="time-item"><span>Indulás:</span> <strong id="sumTime1">--:--:--</strong></div>
-            <div class="time-item"><span>Helyszínen:</span> <strong id="sumTime2">--:--:--</strong></div>
-            <div class="time-item"><span>Hazafele:</span> <strong id="sumTime3">--:--:--</strong></div>
-            <div class="time-item"><span>Otthon:</span> <strong id="sumTime4">--:--:--</strong></div>
+            <div class="time-item"><span>Výjazd zo základne:</span> <strong id="sumTime1">--:--:--</strong></div>
+            <div class="time-item"><span>Príjazd na miesto:</span> <strong id="sumTime2">--:--:--</strong></div>
+            <div class="time-item"><span>Odjazd na základňu:</span> <strong id="sumTime3">--:--:--</strong></div>
+            <div class="time-item"><span>Návrat na základňu:</span> <strong id="sumTime4">--:--:--</strong></div>
           </div>
         </div>
 
         <div class="report-section">
           <div class="report-section-title">🚒 Tatra CAS32</div>
-          <div id="sumTatraDetails">Nem vett részt a bevetésen.</div>
+          <div id="sumTatraDetails">Nezúčastnilo sa výjazdu.</div>
         </div>
 
         <div class="report-section">
           <div class="report-section-title">🚒 Iveco CAS15</div>
-          <div id="sumIvecoDetails">Nem vett részt a bevetésen.</div>
+          <div id="sumIvecoDetails">Nezúčastnilo sa výjazdu.</div>
         </div>
       </div>
     </main>
 
     <footer class="nav-footer">
-      <button class="btn btn-secondary" onclick="goToPage(2)">⬅ Vissza</button>
-      <button class="btn btn-success" onclick="downloadReportAsImage()">📷 Kép Letöltése (PNG)</button>
+      <button class="btn btn-secondary" onclick="goToPage(2)">⬅ Späť</button>
+      <button class="btn btn-success" onclick="downloadReportAsImage()">📷 Stiahnuť obrázok (PNG)</button>
     </footer>
   </div>
 
@@ -863,7 +900,7 @@ function toggleVehicle(vehicle) {
   } else {
     card.classList.add('disabled');
     toggle.classList.remove('active');
-    document.getElementById(vehicle + 'FuelResult').textContent = 'Összesen: 0 L';
+    document.getElementById(vehicle + 'FuelResult').textContent = 'Spolu: 0 L';
   }
 }
 
@@ -886,14 +923,14 @@ function calculateFuel(vehicle) {
     let minutes = parseInt(tatraMinSelect.value);
     let totalHours = hours + (minutes / 60);
     let total = (km * 5) + (totalHours * 3);
-    document.getElementById('tatraFuelResult').textContent = 'Összesen: ' + (total % 1 === 0 ? total : total.toFixed(1)) + ' L';
+    document.getElementById('tatraFuelResult').textContent = 'Spolu: ' + (total % 1 === 0 ? total : total.toFixed(1)) + ' L';
   } else {
     let km = parseInt(ivecoKmSelect.value);
     let hours = parseInt(ivecoHourSelect.value);
     let minutes = parseInt(ivecoMinSelect.value);
     let totalHours = hours + (minutes / 60);
     let total = (km * 2) + (totalHours * 1);
-    document.getElementById('ivecoFuelResult').textContent = 'Összesen: ' + (total % 1 === 0 ? total : total.toFixed(1)) + ' L';
+    document.getElementById('ivecoFuelResult').textContent = 'Spolu: ' + (total % 1 === 0 ? total : total.toFixed(1)) + ' L';
   }
 }
 
@@ -904,6 +941,18 @@ function saveTime(cardNumber) {
   const badge = document.getElementById('time' + cardNumber);
   badge.textContent = timeString;
   badge.classList.add('active');
+}
+
+function editTime(event, cardNumber) {
+  event.stopPropagation();
+  const badge = document.getElementById('time' + cardNumber);
+  const currentVal = badge.textContent === '--:--:--' ? '00:00:00' : badge.textContent;
+  
+  const newTime = prompt('Upravte čas (hh:mm:ss):', currentVal);
+  if (newTime !== null && newTime.trim() !== '') {
+    badge.textContent = newTime.trim();
+    badge.classList.add('active');
+  }
 }
 
 function resetTimes() {
@@ -937,23 +986,23 @@ function generateSummary() {
   if (vehicleStates.tatra) {
     let fuel = document.getElementById('tatraFuelResult').textContent;
     document.getElementById('sumTatraDetails').innerHTML = `
-      <div class="vehicle-summary-item"><span>Állapot:</span><strong style="color:#4ade80;">Aktív</strong></div>
-      <div class="vehicle-summary-item"><span>Létszám:</span><strong>1+${crewStates.tatra} fő</strong></div>
-      <div class="vehicle-summary-item"><span>Fogyasztás:</span><strong>${fuel}</strong></div>
+      <div class="vehicle-summary-item"><span>Stav:</span><strong style="color:#4ade80;">Aktívne</strong></div>
+      <div class="vehicle-summary-item"><span>Posádka:</span><strong>1+${crewStates.tatra} os.</strong></div>
+      <div class="vehicle-summary-item"><span>Spotreba:</span><strong>${fuel.replace('Spolu: ', '')}</strong></div>
     `;
   } else {
-    document.getElementById('sumTatraDetails').innerHTML = '<span style="color:#94a3b8;">Nem vett részt a bevetésen.</span>';
+    document.getElementById('sumTatraDetails').innerHTML = '<span style="color:#94a3b8;">Nezúčastnilo sa výjazdu.</span>';
   }
 
   if (vehicleStates.iveco) {
     let fuel = document.getElementById('ivecoFuelResult').textContent;
     document.getElementById('sumIvecoDetails').innerHTML = `
-      <div class="vehicle-summary-item"><span>Állapot:</span><strong style="color:#4ade80;">Aktív</strong></div>
-      <div class="vehicle-summary-item"><span>Létszám:</span><strong>1+${crewStates.iveco} fő</strong></div>
-      <div class="vehicle-summary-item"><span>Fogyasztás:</span><strong>${fuel}</strong></div>
+      <div class="vehicle-summary-item"><span>Stav:</span><strong style="color:#4ade80;">Aktívne</strong></div>
+      <div class="vehicle-summary-item"><span>Posádka:</span><strong>1+${crewStates.iveco} os.</strong></div>
+      <div class="vehicle-summary-item"><span>Spotreba:</span><strong>${fuel.replace('Spolu: ', '')}</strong></div>
     `;
   } else {
-    document.getElementById('sumIvecoDetails').innerHTML = '<span style="color:#94a3b8;">Nem vett részt a bevetésen.</span>';
+    document.getElementById('sumIvecoDetails').innerHTML = '<span style="color:#94a3b8;">Nezúčastnilo sa výjazdu.</span>';
   }
 }
 
@@ -967,7 +1016,7 @@ function downloadReportAsImage() {
     useCORS: true
   }).then(canvas => {
     const link = document.createElement('a');
-    link.download = `bevetesi-jelentes-${vyjazdSelect.value}.png`;
+    link.download = `sprava-o-vyjazde-${vyjazdSelect.value}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
   });

@@ -38,7 +38,6 @@
 }
 
 body {
-  /* Globális háttérképed a megadott .jpg-s hivatkozással + dimmelve / sötétítve */
   background: 
     linear-gradient(rgba(10, 12, 18, 0.82), rgba(10, 12, 18, 0.85)),
     url('https://i.imgur.com/icboMcv.jpg') center/cover no-repeat fixed;
@@ -49,7 +48,6 @@ body {
   padding: 20px 15px;
 }
 
-/* Képernyő tartály */
 .app-container {
   max-width: 650px;
   width: 100%;
@@ -59,7 +57,6 @@ body {
   flex-direction: column;
 }
 
-/* Fejléc - Modern Glassmorphism */
 header.header-top {
   background: var(--glass-bg);
   backdrop-filter: blur(12px);
@@ -81,7 +78,7 @@ header.header-top {
 }
 
 .brand-icon {
-  width: 38px;
+  width: 44px;
   height: 38px;
   background: linear-gradient(135deg, var(--primary), var(--primary-dark));
   border-radius: 10px;
@@ -89,7 +86,7 @@ header.header-top {
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
   border: 1px solid rgba(255,255,255,0.2);
 }
@@ -150,7 +147,6 @@ header.header-top {
   color: #ffffff;
 }
 
-/* Fő tartalom területek */
 main {
   flex: 1;
   display: flex;
@@ -159,7 +155,6 @@ main {
   width: 100%;
 }
 
-/* Kártyák - Modern Csempék */
 .card {
   background: var(--glass-card);
   backdrop-filter: blur(10px);
@@ -242,7 +237,6 @@ main {
   color: #4ade80;
 }
 
-/* Jármű Rács */
 .grid-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -337,7 +331,6 @@ main {
   gap: 10px;
 }
 
-/* Létszám választó */
 .crew-selector {
   background: rgba(15, 23, 42, 0.5);
   border: 1px solid rgba(255,255,255,0.08);
@@ -367,7 +360,6 @@ main {
   font-size: 1.05rem;
 }
 
-/* Fogyasztási Doboz - Egyedi Háttérkép + Gradient */
 .fuel-box {
   border-radius: var(--radius-md);
   padding: 12px;
@@ -379,10 +371,11 @@ main {
   gap: 8px;
 }
 
+/* ÚJ TATRA HÁTTÉRKÉP CSATOLVA */
 .tatra-bg-fuel {
   background: 
     linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)), 
-    url('https://i.imgur.com/ZS1jlAw.jpg') center/cover no-repeat;
+    url('https://i.imgur.com/5aFtdhe.jpg') center/cover no-repeat;
 }
 
 .iveco-bg-fuel {
@@ -437,7 +430,6 @@ main {
   margin-top: 4px;
 }
 
-/* 3. Oldal - Szép Összegző Kártya (html2canvas képernyőképhez felkészítve) */
 #reportCard {
   background: linear-gradient(145deg, #1e2430, #131722);
   border: 2px solid var(--glass-border);
@@ -542,7 +534,6 @@ main {
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
-/* Navigációs Gombok */
 footer.nav-footer {
   display: flex;
   justify-content: space-between;
@@ -615,7 +606,7 @@ footer.nav-footer {
   <div id="page1" style="display: flex; flex-direction: column; flex: 1;">
     <header class="header-top">
       <div class="brand-badge">
-        <div class="brand-icon">DH</div>
+        <div class="brand-icon">DHZ</div>
         <div>
           <div class="brand-title">DHZO Lehnice</div>
           <div class="brand-subtitle">Bevetési Rendszer</div>
@@ -674,7 +665,7 @@ footer.nav-footer {
   <div id="page2" class="hidden" style="display: flex; flex-direction: column; flex: 1;">
     <header class="header-top">
       <div class="brand-badge">
-        <div class="brand-icon">DH</div>
+        <div class="brand-icon">DHZ</div>
         <div>
           <div class="brand-title">DHZO Lehnice</div>
           <div class="brand-subtitle">Járművek és Fogyasztás</div>
@@ -765,7 +756,7 @@ footer.nav-footer {
   <div id="page3" class="hidden" style="display: flex; flex-direction: column; flex: 1;">
     <header class="header-top">
       <div class="brand-badge">
-        <div class="brand-icon">DH</div>
+        <div class="brand-icon">DHZ</div>
         <div>
           <div class="brand-title">DHZO Lehnice</div>
           <div class="brand-subtitle">Összegzés és Mentés</div>
@@ -774,7 +765,6 @@ footer.nav-footer {
     </header>
 
     <main>
-      <!-- Ezt a kártyát fényképezi le a letöltő gomb -->
       <div id="reportCard">
         <div class="report-header">
           <div class="report-title-group">
@@ -815,7 +805,6 @@ footer.nav-footer {
 </div>
 
 <script>
-// Lehnice / Szlovákia idősáv kezelése
 function updateClock() {
   const now = new Date();
   const options = { timeZone: 'Europe/Bratislava', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
@@ -826,7 +815,6 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// Választólisták feltöltése
 const vyjazdSelect = document.getElementById('vyjazdSelect');
 const tatraKmSelect = document.getElementById('tatraKm');
 const tatraHourSelect = document.getElementById('tatraHour');
@@ -947,7 +935,6 @@ function generateSummary() {
   document.getElementById('sumTime3').textContent = document.getElementById('time3').textContent;
   document.getElementById('sumTime4').textContent = document.getElementById('time4').textContent;
 
-  // Tatra összegzés
   if (vehicleStates.tatra) {
     let fuel = document.getElementById('tatraFuelResult').textContent;
     document.getElementById('sumTatraDetails').innerHTML = `
@@ -959,7 +946,6 @@ function generateSummary() {
     document.getElementById('sumTatraDetails').innerHTML = '<span style="color:#94a3b8;">Nem vett részt a bevetésen.</span>';
   }
 
-  // Iveco összegzés
   if (vehicleStates.iveco) {
     let fuel = document.getElementById('ivecoFuelResult').textContent;
     document.getElementById('sumIvecoDetails').innerHTML = `
@@ -972,14 +958,12 @@ function generateSummary() {
   }
 }
 
-// Fénykép (PNG) letöltése a 3. oldal kártyájáról
 function downloadReportAsImage() {
   const card = document.getElementById('reportCard');
   
-  // html2canvas opciók
   html2canvas(card, {
     backgroundColor: '#131722',
-    scale: 2, // Magasabb felbontás
+    scale: 2,
     logging: false,
     useCORS: true
   }).then(canvas => {

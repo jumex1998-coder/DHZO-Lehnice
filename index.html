@@ -301,6 +301,18 @@ main {
     url('https://i.imgur.com/95Rqm00.jpg') center/cover no-repeat;
 }
 
+#stihlCard {
+  background:
+    linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)),
+    url('https://i.imgur.com/j3Kl1u5.jpg') center/cover no-repeat;
+}
+
+#magirusCard {
+  background:
+    linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)),
+    url('https://i.imgur.com/yBsv8ZH.jpg') center/cover no-repeat;
+}
+
 .vehicle-header {
   display: flex;
   align-items: center;
@@ -653,7 +665,7 @@ footer.nav-footer {
         </div>
         <div class="card-time-wrap">
           <div class="card-time-badge" id="time1">--:--:--</div>
-          <button class="edit-btn" onclick="editTime(event, 1)" title="Ručná úprava času">✏️</button>
+          <button class="edit-btn" onclick="editTime(event, 1)" title="Ručná úprava času"></button>
         </div>
       </div>
 
@@ -664,7 +676,7 @@ footer.nav-footer {
         </div>
         <div class="card-time-wrap">
           <div class="card-time-badge" id="time2">--:--:--</div>
-          <button class="edit-btn" onclick="editTime(event, 2)" title="Ručná úprava času">✏️</button>
+          <button class="edit-btn" onclick="editTime(event, 2)" title="Ručná úprava času"></button>
         </div>
       </div>
 
@@ -675,7 +687,7 @@ footer.nav-footer {
         </div>
         <div class="card-time-wrap">
           <div class="card-time-badge" id="time3">--:--:--</div>
-          <button class="edit-btn" onclick="editTime(event, 3)" title="Ručná úprava času">✏️</button>
+          <button class="edit-btn" onclick="editTime(event, 3)" title="Ručná úprava času"></button>
         </div>
       </div>
 
@@ -686,7 +698,7 @@ footer.nav-footer {
         </div>
         <div class="card-time-wrap">
           <div class="card-time-badge" id="time4">--:--:--</div>
-          <button class="edit-btn" onclick="editTime(event, 4)" title="Ručná úprava času">✏️</button>
+          <button class="edit-btn" onclick="editTime(event, 4)" title="Ručná úprava času"></button>
         </div>
       </div>
     </main>
@@ -779,6 +791,56 @@ footer.nav-footer {
             </div>
           </div>
         </div>
+
+        <!-- STIHL -->
+        <div class="vehicle-card disabled" id="stihlCard">
+          <div class="vehicle-header">
+            <div class="vehicle-title-wrap">
+              <div class="vehicle-name">STIHL</div>
+            </div>
+            <div class="power-switch" id="stihlToggle" onclick="toggleVehicle('stihl')"></div>
+          </div>
+          <div class="vehicle-content">
+            <div class="fuel-box">
+              <div class="fuel-label">Kalkulačka spotreby</div>
+              <div class="fuel-inputs">
+                <div class="input-row">
+                  <span>Doba prevádzky (1L/h):</span>
+                  <div>
+                    <select id="stihlHour" onchange="calculateFuel('stihl')"></select> h
+                    <select id="stihlMin" onchange="calculateFuel('stihl')"></select> min
+                  </div>
+                </div>
+              </div>
+              <div class="fuel-result-badge" id="stihlFuelResult">Spolu: 0 L</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Magirus -->
+        <div class="vehicle-card disabled" id="magirusCard">
+          <div class="vehicle-header">
+            <div class="vehicle-title-wrap">
+              <div class="vehicle-name">Magirus</div>
+            </div>
+            <div class="power-switch" id="magirusToggle" onclick="toggleVehicle('magirus')"></div>
+          </div>
+          <div class="vehicle-content">
+            <div class="fuel-box">
+              <div class="fuel-label">Kalkulačka spotreby</div>
+              <div class="fuel-inputs">
+                <div class="input-row">
+                  <span>Doba prevádzky (2L/h):</span>
+                  <div>
+                    <select id="magirusHour" onchange="calculateFuel('magirus')"></select> h
+                    <select id="magirusMin" onchange="calculateFuel('magirus')"></select> min
+                  </div>
+                </div>
+              </div>
+              <div class="fuel-result-badge" id="magirusFuelResult">Spolu: 0 L</div>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
 
@@ -811,7 +873,7 @@ footer.nav-footer {
         </div>
 
         <div class="report-section">
-          <div class="report-section-title">⏱️ Zaznamenané časy</div>
+          <div class="report-section-title">Zaznamenané časy</div>
           <div class="timeline-grid">
             <div class="time-item"><span>Výjazd zo základne:</span> <strong id="sumTime1">--:--:--</strong></div>
             <div class="time-item"><span>Príjazd na miesto:</span> <strong id="sumTime2">--:--:--</strong></div>
@@ -821,20 +883,30 @@ footer.nav-footer {
         </div>
 
         <div class="report-section">
-          <div class="report-section-title">🚒 Tatra CAS32</div>
+          <div class="report-section-title">Tatra CAS32</div>
           <div id="sumTatraDetails">Nezúčastnilo sa výjazdu.</div>
         </div>
 
         <div class="report-section">
-          <div class="report-section-title">🚒 Iveco CAS15</div>
+          <div class="report-section-title">Iveco CAS15</div>
           <div id="sumIvecoDetails">Nezúčastnilo sa výjazdu.</div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">STIHL</div>
+          <div id="sumStihlDetails">Nezúčastnilo sa výjazdu.</div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Magirus</div>
+          <div id="sumMagirusDetails">Nezúčastnilo sa výjazdu.</div>
         </div>
       </div>
     </main>
 
     <footer class="nav-footer">
       <button class="btn btn-secondary" onclick="goToPage(2)">⬅ Späť</button>
-      <button class="btn btn-success" onclick="downloadReportAsImage()">📷 Stiahnuť obrázok (PNG)</button>
+      <button class="btn btn-success" onclick="downloadReportAsImage()">Odoslať / Stiahnuť (PNG)</button>
     </footer>
   </div>
 
@@ -855,9 +927,16 @@ const vyjazdSelect = document.getElementById('vyjazdSelect');
 const tatraKmSelect = document.getElementById('tatraKm');
 const tatraHourSelect = document.getElementById('tatraHour');
 const tatraMinSelect = document.getElementById('tatraMin');
+
 const ivecoKmSelect = document.getElementById('ivecoKm');
 const ivecoHourSelect = document.getElementById('ivecoHour');
 const ivecoMinSelect = document.getElementById('ivecoMin');
+
+const stihlHourSelect = document.getElementById('stihlHour');
+const stihlMinSelect = document.getElementById('stihlMin');
+
+const magirusHourSelect = document.getElementById('magirusHour');
+const magirusMinSelect = document.getElementById('magirusMin');
 
 for (let i = 1; i <= 100; i++) {
   let opt1 = document.createElement('option'); opt1.value = i; opt1.textContent = i;
@@ -873,6 +952,10 @@ for (let h = 0; h <= 24; h++) {
   tatraHourSelect.appendChild(optH1);
   let optH2 = document.createElement('option'); optH2.value = h; optH2.textContent = h;
   ivecoHourSelect.appendChild(optH2);
+  let optH3 = document.createElement('option'); optH3.value = h; optH3.textContent = h;
+  stihlHourSelect.appendChild(optH3);
+  let optH4 = document.createElement('option'); optH4.value = h; optH4.textContent = h;
+  magirusHourSelect.appendChild(optH4);
 }
 
 [0, 15, 30, 45].forEach(m => {
@@ -880,12 +963,18 @@ for (let h = 0; h <= 24; h++) {
   tatraMinSelect.appendChild(optM1);
   let optM2 = document.createElement('option'); optM2.value = m; optM2.textContent = m < 10 ? '0' + m : m;
   ivecoMinSelect.appendChild(optM2);
+  let optM3 = document.createElement('option'); optM3.value = m; optM3.textContent = m < 10 ? '0' + m : m;
+  stihlMinSelect.appendChild(optM3);
+  let optM4 = document.createElement('option'); optM4.value = m; optM4.textContent = m < 10 ? '0' + m : m;
+  magirusMinSelect.appendChild(optM4);
 });
 
 tatraKmSelect.value = 1; tatraHourSelect.value = 0; tatraMinSelect.value = 0;
 ivecoKmSelect.value = 1; ivecoHourSelect.value = 0; ivecoMinSelect.value = 0;
+stihlHourSelect.value = 0; stihlMinSelect.value = 0;
+magirusHourSelect.value = 0; magirusMinSelect.value = 0;
 
-let vehicleStates = { tatra: false, iveco: false };
+let vehicleStates = { tatra: false, iveco: false, stihl: false, magirus: false };
 let crewStates = { tatra: 1, iveco: 1 };
 
 function toggleVehicle(vehicle) {
@@ -908,7 +997,7 @@ function cycleCrew(vehicle) {
   if (vehicle === 'tatra') {
     crewStates.tatra = (crewStates.tatra % 3) + 1;
     document.getElementById('crew-tatra').textContent = '1+' + crewStates.tatra;
-  } else {
+  } else if (vehicle === 'iveco') {
     crewStates.iveco = (crewStates.iveco % 5) + 1;
     document.getElementById('crew-iveco').textContent = '1+' + crewStates.iveco;
   }
@@ -924,13 +1013,25 @@ function calculateFuel(vehicle) {
     let totalHours = hours + (minutes / 60);
     let total = (km * 5) + (totalHours * 3);
     document.getElementById('tatraFuelResult').textContent = 'Spolu: ' + (total % 1 === 0 ? total : total.toFixed(1)) + ' L';
-  } else {
+  } else if (vehicle === 'iveco') {
     let km = parseInt(ivecoKmSelect.value);
     let hours = parseInt(ivecoHourSelect.value);
     let minutes = parseInt(ivecoMinSelect.value);
     let totalHours = hours + (minutes / 60);
     let total = (km * 2) + (totalHours * 1);
     document.getElementById('ivecoFuelResult').textContent = 'Spolu: ' + (total % 1 === 0 ? total : total.toFixed(1)) + ' L';
+  } else if (vehicle === 'stihl') {
+    let hours = parseInt(stihlHourSelect.value);
+    let minutes = parseInt(stihlMinSelect.value);
+    let totalHours = hours + (minutes / 60);
+    let total = totalHours * 1; // 1 L/h
+    document.getElementById('stihlFuelResult').textContent = 'Spolu: ' + (total % 1 === 0 ? total : total.toFixed(1)) + ' L';
+  } else if (vehicle === 'magirus') {
+    let hours = parseInt(magirusHourSelect.value);
+    let minutes = parseInt(magirusMinSelect.value);
+    let totalHours = hours + (minutes / 60);
+    let total = totalHours * 2; // 2 L/h
+    document.getElementById('magirusFuelResult').textContent = 'Spolu: ' + (total % 1 === 0 ? total : total.toFixed(1)) + ' L';
   }
 }
 
@@ -964,6 +1065,8 @@ function resetTimes() {
   vyjazdSelect.value = 1;
   if (vehicleStates.tatra) toggleVehicle('tatra');
   if (vehicleStates.iveco) toggleVehicle('iveco');
+  if (vehicleStates.stihl) toggleVehicle('stihl');
+  if (vehicleStates.magirus) toggleVehicle('magirus');
 }
 
 function goToPage(pageNum) {
@@ -1004,21 +1107,62 @@ function generateSummary() {
   } else {
     document.getElementById('sumIvecoDetails').innerHTML = '<span style="color:#94a3b8;">Nezúčastnilo sa výjazdu.</span>';
   }
+
+  if (vehicleStates.stihl) {
+    let fuel = document.getElementById('stihlFuelResult').textContent;
+    document.getElementById('sumStihlDetails').innerHTML = `
+      <div class="vehicle-summary-item"><span>Stav:</span><strong style="color:#4ade80;">Aktívne</strong></div>
+      <div class="vehicle-summary-item"><span>Spotreba:</span><strong>${fuel.replace('Spolu: ', '')}</strong></div>
+    `;
+  } else {
+    document.getElementById('sumStihlDetails').innerHTML = '<span style="color:#94a3b8;">Nezúčastnilo sa výjazdu.</span>';
+  }
+
+  if (vehicleStates.magirus) {
+    let fuel = document.getElementById('magirusFuelResult').textContent;
+    document.getElementById('sumMagirusDetails').innerHTML = `
+      <div class="vehicle-summary-item"><span>Stav:</span><strong style="color:#4ade80;">Aktívne</strong></div>
+      <div class="vehicle-summary-item"><span>Spotreba:</span><strong>${fuel.replace('Spolu: ', '')}</strong></div>
+    `;
+  } else {
+    document.getElementById('sumMagirusDetails').innerHTML = '<span style="color:#94a3b8;">Nezúčastnilo sa výjazdu.</span>';
+  }
 }
 
 function downloadReportAsImage() {
   const card = document.getElementById('reportCard');
- 
+  
   html2canvas(card, {
     backgroundColor: '#131722',
     scale: 2,
     logging: false,
     useCORS: true
-  }).then(canvas => {
-    const link = document.createElement('a');
-    link.download = `sprava-o-vyjazde-${vyjazdSelect.value}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+  }).then(async canvas => {
+    const fileName = `sprava-o-vyjazde-${vyjazdSelect.value}.png`;
+    
+    // Konverzia canvasu na Blob
+    canvas.toBlob(async (blob) => {
+      const file = new File([blob], fileName, { type: 'image/png' });
+
+      // Megosztás ellenőrzése Web Share API-val (mobilokon működik jól)
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: `Správa o výjazde #${vyjazdSelect.value}`,
+            text: `Správa o výjazde DHZO Lehnice - #${vyjazdSelect.value}`
+          });
+        } catch (err) {
+          console.log('Megosztás megszakítva vagy hiba történt:', err);
+        }
+      } else {
+        // Hagyományos letöltés, ha a böngésző nem támogatja a közvetlen megosztást
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      }
+    }, 'image/png');
   });
 }
 </script>

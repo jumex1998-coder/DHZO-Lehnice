@@ -746,9 +746,18 @@ footer.nav-footer {
                   <span>Vzdialenosť (5L/km):</span>
                   <div><select id="tatraKm" onchange="calculateFuel('tatra')"></select> km</div>
                 </div>
-                <div class="input-row">  
-                  <span>čerpadlo (5L/h):</span>
-                  <div><select id="tatrah" onchange="calculateFuel('tatra')"></select> h</div>
+                 <div class="input-row">
+                  <span>Státie (4L/h):</span>
+                  <div>
+                    <select id="tatraHour" onchange="calculateFuel('tatra')"></select> h
+                    <select id="tatraMin" onchange="calculateFuel('tatra')"></select> min
+                  </div>
+                </div>
+              </div>
+              <div class="fuel-result-badge" id="tatraFuelResult">Spolu: 0 L</div>
+            </div>
+          </div>
+        </div>
                 </div>
                 <div class="input-row">
                   <span>Chod čerpadla (3L/h):</span>

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DHZO Lehnice - Správa o výjazde</title>
-<!-- Google Fonts & FontAwesome / html2canvas -->
+<!-- Google Fonts & html2canvas -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -230,6 +230,7 @@ main {
   display: flex;
   align-items: center;
   gap: 8px;
+  position: relative;
 }
 
 .card-time-badge {
@@ -269,6 +270,54 @@ main {
   background: rgba(245, 158, 11, 0.25);
   border-color: rgba(245, 158, 11, 0.6);
   transform: scale(1.05);
+}
+
+.native-time-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
+.type-select-card {
+  background: var(--glass-card);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  margin-top: 6px;
+}
+
+.type-select-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.type-select-dropdown {
+  width: 100%;
+  background: #0f172a;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.type-select-dropdown:focus {
+  border-color: var(--accent);
 }
 
 .grid-row {
@@ -515,6 +564,13 @@ main {
   color: var(--text-muted);
 }
 
+.report-badge-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
 .report-badge-vyjazd {
   background: var(--primary);
   color: white;
@@ -523,6 +579,13 @@ main {
   font-weight: 800;
   font-size: 0.9rem;
   box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+  text-align: center;
+}
+
+.report-badge-date {
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  font-weight: 600;
 }
 
 .report-section {
@@ -553,7 +616,6 @@ main {
   justify-content: space-between;
   font-size: 0.85rem;
   padding: 4px 0;
-  border-bottom: 1px stroke rgba(255,255,255,0.05);
 }
 
 .time-item span {
@@ -673,29 +735,32 @@ footer.nav-footer {
         </div>
         <div class="card-time-wrap">
           <div class="card-time-badge" id="time1">--:--:--</div>
-          <button class="edit-btn" onclick="editTime(event, 1)" title="Ručná úprava času">✏️</button>
+          <button class="edit-btn" onclick="openPicker(event, 1)" title="Gördítős időbeállítás">✏️</button>
+          <input type="time" step="1" id="picker1" class="native-time-input" onchange="applyPickerTime(1)">
         </div>
       </div>
 
       <div class="card" onclick="saveTime(2)">
         <div class="card-info">
-          <div class="card-title">2. Príjazd na miesto</div>
+          <div class="card-title">Príjazd na miesto</div>
           <div class="card-subtitle-hint">Kliknite pre zaznamenanie</div>
         </div>
         <div class="card-time-wrap">
           <div class="card-time-badge" id="time2">--:--:--</div>
-          <button class="edit-btn" onclick="editTime(event, 2)" title="Ručná úprava času">✏️</button>
+          <button class="edit-btn" onclick="openPicker(event, 2)" title="Gördítős időbeállítás">✏️</button>
+          <input type="time" step="1" id="picker2" class="native-time-input" onchange="applyPickerTime(2)">
         </div>
       </div>
 
       <div class="card" onclick="saveTime(3)">
         <div class="card-info">
-          <div class="card-title">3. Odjazd na základňu</div>
+          <div class="card-title">Odjazd na základňu</div>
           <div class="card-subtitle-hint">Kliknite pre zaznamenanie</div>
         </div>
         <div class="card-time-wrap">
           <div class="card-time-badge" id="time3">--:--:--</div>
-          <button class="edit-btn" onclick="editTime(event, 3)" title="Ručná úprava času">✏️</button>
+          <button class="edit-btn" onclick="openPicker(event, 3)" title="Gördítős időbeállítás">✏️</button>
+          <input type="time" step="1" id="picker3" class="native-time-input" onchange="applyPickerTime(3)">
         </div>
       </div>
 
@@ -706,8 +771,21 @@ footer.nav-footer {
         </div>
         <div class="card-time-wrap">
           <div class="card-time-badge" id="time4">--:--:--</div>
-          <button class="edit-btn" onclick="editTime(event, 4)" title="Ručná úprava času">✏️</button>
+          <button class="edit-btn" onclick="openPicker(event, 4)" title="Gördítős időbeállítás">✏️</button>
+          <input type="time" step="1" id="picker4" class="native-time-input" onchange="applyPickerTime(4)">
         </div>
+      </div>
+
+      <!-- ÚJ "TYP ZÁSAHU" KÁRTYA -->
+      <div class="type-select-card">
+        <div class="type-select-title">Typ zásahu</div>
+        <select id="typZasahuSelect" class="type-select-dropdown">
+          <option value="">-- Vyberte typ zásahu --</option>
+          <option value="Technický výjazd">Technický výjazd</option>
+          <option value="Požiar">Požiar</option>
+          <option value="Záchrana osôb a zvierat">Záchrana osôb a zvierat</option>
+          <option value="Test">Test</option>
+        </select>
       </div>
     </main>
 
@@ -885,7 +963,15 @@ footer.nav-footer {
             <h2>SPRÁVA O VÝJAZDE</h2>
             <p>Dobrovoľný hasičský zbor obce Lehnice</p>
           </div>
-          <div class="report-badge-vyjazd" id="sumVyjazd">#1. výjazd</div>
+          <div class="report-badge-container">
+            <div class="report-badge-vyjazd" id="sumVyjazd">#1. výjazd</div>
+            <div class="report-badge-date" id="sumDate">--.--.----</div>
+          </div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Typ zásahu</div>
+          <div id="sumTypZasahu" style="font-weight: 700; color: #ffffff; font-size: 0.95rem;">Nenastavené</div>
         </div>
 
         <div class="report-section">
@@ -1077,14 +1163,27 @@ function saveTime(cardNumber) {
   badge.classList.add('active');
 }
 
-function editTime(event, cardNumber) {
+function openPicker(event, cardNumber) {
   event.stopPropagation();
-  const badge = document.getElementById('time' + cardNumber);
-  const currentVal = badge.textContent === '--:--:--' ? '00:00:00' : badge.textContent;
-  
-  const newTime = prompt('Upravte čas (hh:mm:ss):', currentVal);
-  if (newTime !== null && newTime.trim() !== '') {
-    badge.textContent = newTime.trim();
+  const picker = document.getElementById('picker' + cardNumber);
+  if (picker.showPicker) {
+    picker.showPicker();
+  } else {
+    picker.click();
+  }
+}
+
+function applyPickerTime(cardNumber) {
+  const picker = document.getElementById('picker' + cardNumber);
+  if (picker.value) {
+    let parts = picker.value.split(':');
+    let hh = parts[0] || '00';
+    let mm = parts[1] || '00';
+    let ss = parts[2] || '00';
+    
+    const formatted = `${hh.padStart(2,'0')}:${mm.padStart(2,'0')}:${ss.padStart(2,'0')}`;
+    const badge = document.getElementById('time' + cardNumber);
+    badge.textContent = formatted;
     badge.classList.add('active');
   }
 }
@@ -1094,7 +1193,9 @@ function resetTimes() {
     const badge = document.getElementById('time' + i);
     badge.textContent = '--:--:--';
     badge.classList.remove('active');
+    document.getElementById('picker' + i).value = '';
   }
+  document.getElementById('typZasahuSelect').value = '';
   vyjazdSelect.value = 1;
   if (vehicleStates.tatra) toggleVehicle('tatra');
   if (vehicleStates.iveco) toggleVehicle('iveco');
@@ -1113,6 +1214,10 @@ function goToPage(pageNum) {
 
 function generateSummary() {
   document.getElementById('sumVyjazd').textContent = '#' + vyjazdSelect.value + '. výjazd';
+  document.getElementById('sumDate').textContent = document.getElementById('date1').textContent;
+
+  const typVal = document.getElementById('typZasahuSelect').value;
+  document.getElementById('sumTypZasahu').textContent = typVal ? typVal : 'Nenastavené';
 
   document.getElementById('sumTime1').textContent = document.getElementById('time1').textContent;
   document.getElementById('sumTime2').textContent = document.getElementById('time2').textContent;

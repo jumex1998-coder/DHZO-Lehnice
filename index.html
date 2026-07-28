@@ -120,6 +120,12 @@ header.header-top {
   letter-spacing: 1px;
 }
 
+.date-display {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
 .vyjazd-badge {
   display: inline-flex;
   align-items: center;
@@ -131,6 +137,7 @@ header.header-top {
   font-size: 0.8rem;
   font-weight: 600;
   color: #fca5a5;
+  margin-top: 2px;
 }
 
 .vyjazd-badge select {
@@ -650,6 +657,7 @@ footer.nav-footer {
       </div>
       <div class="header-right">
         <div class="clock-display" id="clock1">00:00:00</div>
+        <div class="date-display" id="date1">--.--.----</div>
         <div class="vyjazd-badge">
           <span>Výjazd:</span>
           <select id="vyjazdSelect"></select>
@@ -660,45 +668,45 @@ footer.nav-footer {
     <main>
       <div class="card" onclick="saveTime(1)">
         <div class="card-info">
-          <div class="card-title">Vyhlásenie poplachu KOS</div>
+          <div class="card-title">VYHLÁSENIE POPLACHU</div>
           <div class="card-subtitle-hint">Kliknite pre zaznamenanie</div>
         </div>
         <div class="card-time-wrap">
           <div class="card-time-badge" id="time1">--:--:--</div>
-          <button class="edit-btn" onclick="editTime(event, 1)" title="Ručná úprava času"></button>
+          <button class="edit-btn" onclick="editTime(event, 1)" title="Ručná úprava času">✏️</button>
         </div>
       </div>
 
       <div class="card" onclick="saveTime(2)">
         <div class="card-info">
-          <div class="card-title">VÝJAZD ZO ZÁKLADNE</div>
+          <div class="card-title">2. Príjazd na miesto</div>
           <div class="card-subtitle-hint">Kliknite pre zaznamenanie</div>
         </div>
         <div class="card-time-wrap">
           <div class="card-time-badge" id="time2">--:--:--</div>
-          <button class="edit-btn" onclick="editTime(event, 2)" title="Ručná úprava času"></button>
+          <button class="edit-btn" onclick="editTime(event, 2)" title="Ručná úprava času">✏️</button>
         </div>
       </div>
 
       <div class="card" onclick="saveTime(3)">
         <div class="card-info">
-          <div class="card-title">PRÍCHOD NA MIESTO</div>
+          <div class="card-title">3. Odjazd na základňu</div>
           <div class="card-subtitle-hint">Kliknite pre zaznamenanie</div>
         </div>
         <div class="card-time-wrap">
           <div class="card-time-badge" id="time3">--:--:--</div>
-          <button class="edit-btn" onclick="editTime(event, 3)" title="Ručná úprava času"></button>
+          <button class="edit-btn" onclick="editTime(event, 3)" title="Ručná úprava času">✏️</button>
         </div>
       </div>
 
       <div class="card" onclick="saveTime(4)">
         <div class="card-info">
-          <div class="card-title">4. Návrat na základňu</div>
+          <div class="card-title">Návrat na základňu</div>
           <div class="card-subtitle-hint">Kliknite pre zaznamenanie</div>
         </div>
         <div class="card-time-wrap">
           <div class="card-time-badge" id="time4">--:--:--</div>
-          <button class="edit-btn" onclick="editTime(event, 4)" title="Ručná úprava času"></button>
+          <button class="edit-btn" onclick="editTime(event, 4)" title="Ručná úprava času">✏️</button>
         </div>
       </div>
     </main>
@@ -721,6 +729,7 @@ footer.nav-footer {
       </div>
       <div class="header-right">
         <div class="clock-display" id="clock2">00:00:00</div>
+        <div class="date-display" id="date2">--.--.----</div>
       </div>
     </header>
 
@@ -753,6 +762,13 @@ footer.nav-footer {
                     <select id="tatraMin" onchange="calculateFuel('tatra')"></select> min
                   </div>
                 </div>
+                <div class="input-row">
+                  <span>Státie (2L/h):</span>
+                  <div>
+                    <select id="tatraIdleHour" onchange="calculateFuel('tatra')"></select> h
+                    <select id="tatraIdleMin" onchange="calculateFuel('tatra')"></select> min
+                  </div>
+                </div>
               </div>
               <div class="fuel-result-badge" id="tatraFuelResult">Spolu: 0 L</div>
             </div>
@@ -780,7 +796,7 @@ footer.nav-footer {
                   <div><select id="ivecoKm" onchange="calculateFuel('iveco')"></select> km</div>
                 </div>
                 <div class="input-row">
-                  <span>Státie (1L/h):</span>
+                  <span>Chod čerpadla (1L/h):</span>
                   <div>
                     <select id="ivecoHour" onchange="calculateFuel('iveco')"></select> h
                     <select id="ivecoMin" onchange="calculateFuel('iveco')"></select> min
@@ -875,7 +891,7 @@ footer.nav-footer {
         <div class="report-section">
           <div class="report-section-title">Zaznamenané časy</div>
           <div class="timeline-grid">
-            <div class="time-item"><span>Výjazd zo základne:</span> <strong id="sumTime1">--:--:--</strong></div>
+            <div class="time-item"><span>Vyhlásenie poplachu:</span> <strong id="sumTime1">--:--:--</strong></div>
             <div class="time-item"><span>Príjazd na miesto:</span> <strong id="sumTime2">--:--:--</strong></div>
             <div class="time-item"><span>Odjazd na základňu:</span> <strong id="sumTime3">--:--:--</strong></div>
             <div class="time-item"><span>Návrat na základňu:</span> <strong id="sumTime4">--:--:--</strong></div>
@@ -915,10 +931,16 @@ footer.nav-footer {
 <script>
 function updateClock() {
   const now = new Date();
-  const options = { timeZone: 'Europe/Bratislava', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-  const timeString = new Intl.DateTimeFormat('sk-SK', options).format(now);
+  const timeOptions = { timeZone: 'Europe/Bratislava', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+  const dateOptions = { timeZone: 'Europe/Bratislava', day: '2-digit', month: '2-digit', year: 'numeric' };
+  
+  const timeString = new Intl.DateTimeFormat('sk-SK', timeOptions).format(now);
+  const dateString = new Intl.DateTimeFormat('sk-SK', dateOptions).format(now);
+
   document.getElementById('clock1').textContent = timeString;
   document.getElementById('clock2').textContent = timeString;
+  document.getElementById('date1').textContent = dateString;
+  document.getElementById('date2').textContent = dateString;
 }
 setInterval(updateClock, 1000);
 updateClock();
@@ -927,6 +949,8 @@ const vyjazdSelect = document.getElementById('vyjazdSelect');
 const tatraKmSelect = document.getElementById('tatraKm');
 const tatraHourSelect = document.getElementById('tatraHour');
 const tatraMinSelect = document.getElementById('tatraMin');
+const tatraIdleHourSelect = document.getElementById('tatraIdleHour');
+const tatraIdleMinSelect = document.getElementById('tatraIdleMin');
 
 const ivecoKmSelect = document.getElementById('ivecoKm');
 const ivecoHourSelect = document.getElementById('ivecoHour');
@@ -950,6 +974,8 @@ for (let i = 1; i <= 100; i++) {
 for (let h = 0; h <= 24; h++) {
   let optH1 = document.createElement('option'); optH1.value = h; optH1.textContent = h;
   tatraHourSelect.appendChild(optH1);
+  let optH1Idle = document.createElement('option'); optH1Idle.value = h; optH1Idle.textContent = h;
+  tatraIdleHourSelect.appendChild(optH1Idle);
   let optH2 = document.createElement('option'); optH2.value = h; optH2.textContent = h;
   ivecoHourSelect.appendChild(optH2);
   let optH3 = document.createElement('option'); optH3.value = h; optH3.textContent = h;
@@ -961,6 +987,8 @@ for (let h = 0; h <= 24; h++) {
 [0, 15, 30, 45].forEach(m => {
   let optM1 = document.createElement('option'); optM1.value = m; optM1.textContent = m < 10 ? '0' + m : m;
   tatraMinSelect.appendChild(optM1);
+  let optM1Idle = document.createElement('option'); optM1Idle.value = m; optM1Idle.textContent = m < 10 ? '0' + m : m;
+  tatraIdleMinSelect.appendChild(optM1Idle);
   let optM2 = document.createElement('option'); optM2.value = m; optM2.textContent = m < 10 ? '0' + m : m;
   ivecoMinSelect.appendChild(optM2);
   let optM3 = document.createElement('option'); optM3.value = m; optM3.textContent = m < 10 ? '0' + m : m;
@@ -969,7 +997,7 @@ for (let h = 0; h <= 24; h++) {
   magirusMinSelect.appendChild(optM4);
 });
 
-tatraKmSelect.value = 1; tatraHourSelect.value = 0; tatraMinSelect.value = 0;
+tatraKmSelect.value = 1; tatraHourSelect.value = 0; tatraMinSelect.value = 0; tatraIdleHourSelect.value = 0; tatraIdleMinSelect.value = 0;
 ivecoKmSelect.value = 1; ivecoHourSelect.value = 0; ivecoMinSelect.value = 0;
 stihlHourSelect.value = 0; stihlMinSelect.value = 0;
 magirusHourSelect.value = 0; magirusMinSelect.value = 0;
@@ -1011,7 +1039,12 @@ function calculateFuel(vehicle) {
     let hours = parseInt(tatraHourSelect.value);
     let minutes = parseInt(tatraMinSelect.value);
     let totalHours = hours + (minutes / 60);
-    let total = (km * 5) + (totalHours * 3);
+
+    let idleHours = parseInt(tatraIdleHourSelect.value);
+    let idleMinutes = parseInt(tatraIdleMinSelect.value);
+    let totalIdleHours = idleHours + (idleMinutes / 60);
+
+    let total = (km * 5) + (totalHours * 3) + (totalIdleHours * 2);
     document.getElementById('tatraFuelResult').textContent = 'Spolu: ' + (total % 1 === 0 ? total : total.toFixed(1)) + ' L';
   } else if (vehicle === 'iveco') {
     let km = parseInt(ivecoKmSelect.value);
@@ -1024,13 +1057,13 @@ function calculateFuel(vehicle) {
     let hours = parseInt(stihlHourSelect.value);
     let minutes = parseInt(stihlMinSelect.value);
     let totalHours = hours + (minutes / 60);
-    let total = totalHours * 1; // 1 L/h
+    let total = totalHours * 1;
     document.getElementById('stihlFuelResult').textContent = 'Spolu: ' + (total % 1 === 0 ? total : total.toFixed(1)) + ' L';
   } else if (vehicle === 'magirus') {
     let hours = parseInt(magirusHourSelect.value);
     let minutes = parseInt(magirusMinSelect.value);
     let totalHours = hours + (minutes / 60);
-    let total = totalHours * 2; // 2 L/h
+    let total = totalHours * 2;
     document.getElementById('magirusFuelResult').textContent = 'Spolu: ' + (total % 1 === 0 ? total : total.toFixed(1)) + ' L';
   }
 }
@@ -1048,7 +1081,7 @@ function editTime(event, cardNumber) {
   event.stopPropagation();
   const badge = document.getElementById('time' + cardNumber);
   const currentVal = badge.textContent === '--:--:--' ? '00:00:00' : badge.textContent;
- 
+  
   const newTime = prompt('Upravte čas (hh:mm:ss):', currentVal);
   if (newTime !== null && newTime.trim() !== '') {
     badge.textContent = newTime.trim();
@@ -1130,39 +1163,16 @@ function generateSummary() {
 }
 
 function downloadReportAsImage() {
-  const card = document.getElementById('reportCard');
- 
-  html2canvas(card, {
-    backgroundColor: '#131722',
-    scale: 2,
-    logging: false,
-    useCORS: true
-  }).then(async canvas => {
-    const fileName = `sprava-o-vyjazde-${vyjazdSelect.value}.png`;
-   
-    // Konverzia canvasu na Blob
-    canvas.toBlob(async (blob) => {
-      const file = new File([blob], fileName, { type: 'image/png' });
-
-      // Megosztás ellenőrzése Web Share API-val (mobilokon működik jól)
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({
-            files: [file],
-            title: `Správa o výjazde #${vyjazdSelect.value}`,
-            text: `Správa o výjazde DHZO Lehnice - #${vyjazdSelect.value}`
-          });
-        } catch (err) {
-          console.log('Megosztás megszakítva vagy hiba történt:', err);
-        }
-      } else {
-        // Hagyományos letöltés, ha a böngésző nem támogatja a közvetlen megosztást
-        const link = document.createElement('a');
-        link.download = fileName;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-      }
-    }, 'image/png');
+  const element = document.getElementById('reportCard');
+  
+  html2canvas(element, {
+    backgroundColor: '#0f172a',
+    scale: 2
+  }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = `Vyjazd_DHZO_Lehnice_${vyjazdSelect.value}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
   });
 }
 </script>

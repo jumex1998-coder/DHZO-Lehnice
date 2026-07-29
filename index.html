@@ -831,18 +831,18 @@ footer.nav-footer {
               <div class="fuel-label">Kalkulačka spotreby</div>
               <div class="fuel-inputs">
                 <div class="input-row">
-                  <span>Vzdialenosť (5L/km):</span>
+                  <span>Vzdialenosť (0,57L/km):</span>
                   <div><select id="tatraKm" onchange="calculateFuel('tatra')"></select> km</div>
                 </div>
                 <div class="input-row">
-                  <span>Chod čerpadla (3L/h):</span>
+                  <span>Chod čerpadla (18L/h):</span>
                   <div>
                     <select id="tatraHour" onchange="calculateFuel('tatra')"></select> h
                     <select id="tatraMin" onchange="calculateFuel('tatra')"></select> min
                   </div>
                 </div>
                 <div class="input-row">
-                  <span>Státie (2L/h):</span>
+                  <span>Státie (7L/h):</span>
                   <div>
                     <select id="tatraIdleHour" onchange="calculateFuel('tatra')"></select> h
                     <select id="tatraIdleMin" onchange="calculateFuel('tatra')"></select> min
@@ -871,11 +871,11 @@ footer.nav-footer {
               <div class="fuel-label">Kalkulačka spotreby</div>
               <div class="fuel-inputs">
                 <div class="input-row">
-                  <span>Vzdialenosť (2L/km):</span>
+                  <span>Vzdialenosť (0,15L/km):</span>
                   <div><select id="ivecoKm" onchange="calculateFuel('iveco')"></select> km</div>
                 </div>
                 <div class="input-row">
-                  <span>Statie (1L/h):</span>
+                  <span>Statie (4L/h):</span>
                   <div>
                     <select id="ivecoHour" onchange="calculateFuel('iveco')"></select> h
                     <select id="ivecoMin" onchange="calculateFuel('iveco')"></select> min
@@ -925,7 +925,7 @@ footer.nav-footer {
               <div class="fuel-label">Kalkulačka spotreby</div>
               <div class="fuel-inputs">
                 <div class="input-row">
-                  <span>Doba prevádzky (2L/h):</span>
+                  <span>Doba prevádzky (8L/h):</span>
                   <div>
                     <select id="magirusHour" onchange="calculateFuel('magirus')"></select> h
                     <select id="magirusMin" onchange="calculateFuel('magirus')"></select> min
@@ -1000,7 +1000,10 @@ footer.nav-footer {
           <div id="sumStihlDetails">Nezúčastnilo sa výjazdu.</div>
         </div>
 
-        <!-- ... további tartalom (nem változott) ... -->
+        <div class="report-section">
+          <div class="report-section-title">Magirus</div>
+          <div id="sumMagirusDetails">Nezúčastnilo sa výjazdu.</div>
+        </div>
 
       </div>
     </main>
@@ -1119,7 +1122,6 @@ function saveTime(idx) {
   // store also in corresponding input if present
   const picker = document.getElementById('picker' + idx);
   if (picker) {
-    // set input value to HH:MM or HH:MM:SS depending on support
     picker.value = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
   }
   saveState();
@@ -1164,7 +1166,10 @@ function toggleVehicle(name) {
 function cycleCrew(name) {
   const el = document.getElementById('crew-' + name);
   if (!el) return;
-  const options = ['1+1','1+2','1+3','2+4'];
+  let options = ['1+1','1+2','1+3','2+4']; // fallback
+  if (name === 'tatra') options = ['1+1','1+2','1+3'];
+  else if (name === 'iveco') options = ['1+1','1+2','1+3','1+4','1+5'];
+  // find current index
   const idx = options.indexOf(el.textContent);
   const next = options[(idx + 1) % options.length];
   el.textContent = next;
@@ -1184,6 +1189,16 @@ function populateSelects() {
       sel.appendChild(opt);
     }
   }
+  // vyjazd 1..100
+  const vy = document.getElementById('vyjazdSelect');
+  if (vy && !vy.options.length) {
+    for (let i=1;i<=100;i++) {
+      const o = document.createElement('option');
+      o.value = String(i);
+      o.text = `#${i}. výjazd`;
+      vy.appendChild(o);
+    }
+  }
   // km
   fill('tatraKm', 0, 200, 1);
   fill('ivecoKm', 0, 200, 1);
@@ -1192,14 +1207,14 @@ function populateSelects() {
   ['tatraMin','tatraIdleMin','ivecoMin','stihlMin','magirusMin'].forEach(id => fill(id,0,59));
 }
 
-/* Fuel calculation (very simple based on labels) */
+/* Fuel calculation (updated to handle different field combos) */
 function calculateFuel(name) {
-  // rates (L per km, L per hour pump, L per hour idle) by vehicle
+  // updated rates per your request
   const rates = {
-    tatra: { perKm:5, pumpPerHour:3, idlePerHour:2 },
-    iveco: { perKm:2, pumpPerHour:0, idlePerHour:1 }, // iveco uses 'Statie (1L/h)' as idle; pumpPerHour unused
+    tatra: { perKm:0.57, pumpPerHour:18, idlePerHour:7 },
+    iveco: { perKm:0.15, pumpPerHour:0, idlePerHour:4 },
     stihl: { perKm:0, pumpPerHour:0, idlePerHour:1 },
-    magirus: { perKm:0, pumpPerHour:0, idlePerHour:2 }
+    magirus: { perKm:0, pumpPerHour:0, idlePerHour:8 }
   };
   const r = rates[name];
   if (!r) return;
@@ -1208,7 +1223,7 @@ function calculateFuel(name) {
   const kmSel = document.getElementById(name + 'Km');
   const km = kmSel ? parseFloat(kmSel.value || '0') : 0;
   total += (r.perKm || 0) * km;
-  // pump/chod or hours
+  // hour/min selectors
   const hourSel = document.getElementById(name + 'Hour');
   const minSel = document.getElementById(name + 'Min');
   const idleHourSel = document.getElementById(name + 'IdleHour') || null;
@@ -1217,8 +1232,24 @@ function calculateFuel(name) {
   const mins = minSel ? parseFloat(minSel.value || '0') : 0;
   const idleHours = idleHourSel ? parseFloat(idleHourSel.value || '0') : 0;
   const idleMins = idleMinSel ? parseFloat(idleMinSel.value || '0') : 0;
-  total += (r.pumpPerHour || 0) * (hours + mins/60);
-  total += (r.idlePerHour || 0) * (idleHours + idleMins/60);
+
+  const hoursVal = hours + mins/60;
+  const idleVal = idleHours + idleMins/60;
+
+  // If pumpPerHour is defined (>0) we treat Hour/Min as pump (Tatra case).
+  // If pumpPerHour == 0 but idlePerHour > 0, and there's no separate idle selectors, treat Hour/Min as idle.
+  if ((r.pumpPerHour || 0) > 0) {
+    total += (r.pumpPerHour || 0) * hoursVal;
+    total += (r.idlePerHour || 0) * idleVal;
+  } else {
+    // no pump rate defined; everything goes to idle if idle rate > 0
+    if ((r.idlePerHour || 0) > 0) {
+      total += r.idlePerHour * (hoursVal + idleVal);
+    } else {
+      // nothing else
+    }
+  }
+
   total = Math.round(total * 10) / 10;
   const resultEl = document.getElementById(name + 'FuelResult');
   if (resultEl) resultEl.textContent = 'Spolu: ' + total + ' L';
@@ -1244,7 +1275,6 @@ function saveState() {
   // vehicles toggles and crew
   ['tatra','iveco','stihl','magirus'].forEach(name => {
     const toggle = document.getElementById(name + 'Toggle');
-    const card = document.getElementById(name + 'Card');
     const crew = document.getElementById('crew-' + name);
     state[name + '_active'] = toggle ? toggle.classList.contains('active') : false;
     state[name + '_crew'] = crew ? crew.textContent : '';
@@ -1313,13 +1343,6 @@ document.addEventListener('DOMContentLoaded', () => {
   updateClocks();
   setInterval(updateClocks, 1000);
 
-  // populate vyjazd dropdown sample values if empty
-  const vy = document.getElementById('vyjazdSelect');
-  if (vy && !vy.options.length) {
-    ['#1. výjazd','#2. výjazd','#3. výjazd'].forEach((t,i) => {
-      const o = document.createElement('option'); o.value = String(i+1); o.text = t; vy.appendChild(o);
-    });
-  }
   populateSelects();
   loadState();
 
@@ -1342,6 +1365,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // typ select save
   const typ = document.getElementById('typZasahuSelect');
   if (typ) typ.addEventListener('change', saveState);
+  const vy = document.getElementById('vyjazdSelect');
   if (vy) vy.addEventListener('change', saveState);
 
   // initial fuel calculations
@@ -1369,13 +1393,16 @@ function generateSummary() {
   const sumStihl = document.getElementById('sumStihlDetails');
   const stihlActive = document.getElementById('stihlToggle')?.classList.contains('active');
   if (sumStihl) sumStihl.textContent = stihlActive ? document.getElementById('stihlFuelResult')?.textContent || 'Zúčastnilo sa' : 'Nezúčastnilo sa výjazdu.';
+  const sumMagirus = document.getElementById('sumMagirusDetails');
+  const magActive = document.getElementById('magirusToggle')?.classList.contains('active');
+  if (sumMagirus) sumMagirus.textContent = magActive ? document.getElementById('magirusFuelResult')?.textContent || 'Zúčastnilo sa' : 'Nezúčastnilo sa výjazdu.';
   // date and vyjazd
   const sumDate = document.getElementById('sumDate');
   const today = new Date();
   if (sumDate) sumDate.textContent = String(today.getDate()).padStart(2,'0') + '.' + String(today.getMonth()+1).padStart(2,'0') + '.' + today.getFullYear();
   const sumVy = document.getElementById('sumVyjazd');
-  const vy = document.getElementById('vyjazdSelect');
-  if (sumVy && vy) sumVy.textContent = vy.options[vy.selectedIndex] ? vy.options[vy.selectedIndex].text : sumVy.textContent;
+  const vySelect = document.getElementById('vyjazdSelect');
+  if (sumVy && vySelect) sumVy.textContent = vySelect.options[vySelect.selectedIndex] ? vySelect.options[vySelect.selectedIndex].text : sumVy.textContent;
 }
 
 /* download report (uses html2canvas if available) */

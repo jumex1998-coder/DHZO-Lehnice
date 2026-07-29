@@ -875,7 +875,7 @@ footer.nav-footer {
                   <div><select id="ivecoKm" onchange="calculateFuel('iveco')"></select> km</div>
                 </div>
                 <div class="input-row">
-                  <span>Státie (1L/h):</span>
+                  <span>Statie (1L/h):</span>
                   <div>
                     <select id="ivecoHour" onchange="calculateFuel('iveco')"></select> h
                     <select id="ivecoMin" onchange="calculateFuel('iveco')"></select> min
@@ -1028,6 +1028,30 @@ function formatTimeFromInputVal(val) {
   return val;
 }
 
+/* LIVE CLOCK & DATE (updates clock1, clock2, date1, date2 every second) */
+function updateClocks() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  const clockStr = `${hh}:${mm}:${ss}`;
+
+  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = now.getFullYear();
+  const dateStr = `${day}.${month}.${year}`;
+
+  const c1 = document.getElementById('clock1');
+  const c2 = document.getElementById('clock2');
+  const d1 = document.getElementById('date1');
+  const d2 = document.getElementById('date2');
+
+  if (c1) c1.textContent = clockStr;
+  if (c2) c2.textContent = clockStr;
+  if (d1) d1.textContent = dateStr;
+  if (d2) d2.textContent = dateStr;
+}
+
 /* OPEN NATIVE TIME PICKER (mobile-friendly)
    event: click event from button -> stop propagation so card onclick doesn't fire */
 function openPicker(event, idx) {
@@ -1117,7 +1141,6 @@ function goToPage(n) {
     const el = document.getElementById('page' + p);
     if (!el) return;
     el.style.display = (p === n) ? 'flex' : (p === 1 ? 'flex' : 'none');
-    // keep page1 display flex by default for mobile layout
   });
   // ensure proper hidden class usage:
   document.querySelectorAll('[id^="page"]').forEach(el => {
@@ -1174,7 +1197,7 @@ function calculateFuel(name) {
   // rates (L per km, L per hour pump, L per hour idle) by vehicle
   const rates = {
     tatra: { perKm:5, pumpPerHour:3, idlePerHour:2 },
-    iveco: { perKm:2, pumpPerHour:0, idlePerHour:1 }, // iveco uses 'Státie (1L/h)' as idle; pumpPerHour unused
+    iveco: { perKm:2, pumpPerHour:0, idlePerHour:1 }, // iveco uses 'Statie (1L/h)' as idle; pumpPerHour unused
     stihl: { perKm:0, pumpPerHour:0, idlePerHour:1 },
     magirus: { perKm:0, pumpPerHour:0, idlePerHour:2 }
   };
@@ -1286,6 +1309,10 @@ function loadState() {
 
 /* Hook up listeners on load */
 document.addEventListener('DOMContentLoaded', () => {
+  // start clocks
+  updateClocks();
+  setInterval(updateClocks, 1000);
+
   // populate vyjazd dropdown sample values if empty
   const vy = document.getElementById('vyjazdSelect');
   if (vy && !vy.options.length) {
@@ -1319,13 +1346,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // initial fuel calculations
   ['tatra','iveco','stihl','magirus'].forEach(n => calculateFuel(n));
-
-  // update summary page times when navigating to page3
-  const origGo = window.goToPage;
-  // override generateSummary to also fill summary fields if it exists later
 });
 
-/* Optional: generateSummary and downloadReport placeholder functions */
+/* Optional: generateSummary and downloadReport functions */
 function generateSummary() {
   // copy values to summary section (if present)
   for (let i=1;i<=4;i++) {

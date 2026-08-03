@@ -1027,10 +1027,16 @@ footer.nav-footer {
   const STORAGE_KEY = 'dhzo_lehnice_v1';
 
   // --- config ---
-  const crewOptions = ['1+1','1+2','1+3','2+3'];
+  // per-vehicle crew options (user requested specific sets)
+  const crewOptionsMap = {
+    tatra: ['1+1','1+2','1+3'],
+    iveco: ['1+1','1+2','1+3','1+4','1+5'],
+    stihl: ['1+1','1+2','1+3'],
+    magirus: ['1+1','1+2','1+3']
+  };
   const vehicles = {
     tatra: { kmRate: 0.57, pumpRate: 18, idleRate: 7 },
-    iveco: { kmRate: 0.15, idleRate: 4 }, // pumpRate N/A
+    iveco: { kmRate: 0.15, idleRate: 4 },
     stihl: { workRate: 1 },
     magirus: { workRate: 8 }
   };
@@ -1055,7 +1061,7 @@ footer.nav-footer {
     const vy = $('vyjazdSelect');
     if (vy) {
       vy.innerHTML = '';
-      for (let i=1;i<=20;i++){
+      for (let i=1;i<=100;i++){ // changed 1..100 per request
         const o = document.createElement('option'); o.value=i; o.textContent=`#${i}. výjazd`; vy.appendChild(o);
       }
     }
@@ -1133,7 +1139,7 @@ footer.nav-footer {
   };
 
   window.applyPickerTime = function(index) {
-    const picker = $(`picker{index}`) || $(`picker${index}`);
+    const picker = $(`picker${index}`);
     if (!picker) return;
     let val = picker.value;
     if (!val) return;
@@ -1189,6 +1195,7 @@ footer.nav-footer {
       toggle.classList.remove('active');
     }
     const state = loadState(); state.vehicles = state.vehicles || {}; state.vehicles[name] = !disabled; saveState(state);
+    // ensure fuel is calculated for visible values
     calculateFuel(name);
     generateSummary();
   };
@@ -1196,9 +1203,10 @@ footer.nav-footer {
   window.cycleCrew = function(name) {
     const el = $(`crew-${name}`);
     if (!el) return;
-    const cur = el.textContent || crewOptions[0];
-    const idx = crewOptions.indexOf(cur);
-    const next = crewOptions[(idx+1)%crewOptions.length];
+    const options = crewOptionsMap[name] || ['1+1','1+2','1+3'];
+    const cur = el.textContent || options[0];
+    const idx = options.indexOf(cur);
+    const next = options[(idx+1)%options.length];
     el.textContent = next;
     const state = loadState(); state.crews = state.crews || {}; state.crews[name] = next; saveState(state);
     generateSummary();
@@ -1211,30 +1219,30 @@ footer.nav-footer {
     const state = loadState();
     let total = 0;
     if (name === 'tatra') {
-      const km = Number($('tatraKm').value||0);
+      const km = Number($('tatraKm')?.value||0);
       const drive = (vehicles.tatra.kmRate||0) * km;
-      const pumpH = Number($('tatraHour').value||0); const pumpM = Number($('tatraMin').value||0);
+      const pumpH = Number($('tatraHour')?.value||0); const pumpM = Number($('tatraMin')?.value||0);
       const pump = (vehicles.tatra.pumpRate||0) * hoursFrom(pumpH,pumpM);
-      const idleH = Number($('tatraIdleHour').value||0); const idleM = Number($('tatraIdleMin').value||0);
+      const idleH = Number($('tatraIdleHour')?.value||0); const idleM = Number($('tatraIdleMin')?.value||0);
       const idle = (vehicles.tatra.idleRate||0) * hoursFrom(idleH,idleM);
       total = drive + pump + idle;
       if ($('tatraFuelResult')) $('tatraFuelResult').textContent = `Spolu: ${total.toFixed(2)} L`;
       state.fuel = state.fuel||{}; state.fuel.tatra = total; saveState(state);
     } else if (name === 'iveco') {
-      const km = Number($('ivecoKm').value||0);
+      const km = Number($('ivecoKm')?.value||0);
       const drive = (vehicles.iveco.kmRate||0) * km;
-      const h = Number($('ivecoHour').value||0); const m = Number($('ivecoMin').value||0);
+      const h = Number($('ivecoHour')?.value||0); const m = Number($('ivecoMin')?.value||0);
       const work = (vehicles.iveco.idleRate||0) * hoursFrom(h,m);
       total = drive + work;
       if ($('ivecoFuelResult')) $('ivecoFuelResult').textContent = `Spolu: ${total.toFixed(2)} L`;
       state.fuel = state.fuel||{}; state.fuel.iveco = total; saveState(state);
     } else if (name === 'stihl') {
-      const h = Number($('stihlHour').value||0); const m = Number($('stihlMin').value||0);
+      const h = Number($('stihlHour')?.value||0); const m = Number($('stihlMin')?.value||0);
       total = (vehicles.stihl.workRate||0) * hoursFrom(h,m);
       if ($('stihlFuelResult')) $('stihlFuelResult').textContent = `Spolu: ${total.toFixed(2)} L`;
       state.fuel = state.fuel||{}; state.fuel.stihl = total; saveState(state);
     } else if (name === 'magirus') {
-      const h = Number($('magirusHour').value||0); const m = Number($('magirusMin').value||0);
+      const h = Number($('magirusHour')?.value||0); const m = Number($('magirusMin')?.value||0);
       total = (vehicles.magirus.workRate||0) * hoursFrom(h,m);
       if ($('magirusFuelResult')) $('magirusFuelResult').textContent = `Spolu: ${total.toFixed(2)} L`;
       state.fuel = state.fuel||{}; state.fuel.magirus = total; saveState(state);
@@ -1242,7 +1250,7 @@ footer.nav-footer {
     generateSummary();
   };
 
-  // --- generate summary ---
+  // --- generate summary (reads current DOM values so summary always shows current km/crew/fuel) ---
   window.generateSummary = function() {
     const state = loadState();
     const vy = $('vyjazdSelect') ? $('vyjazdSelect').value : (state.vyjazd || '1');
@@ -1255,29 +1263,66 @@ footer.nav-footer {
       setTimeBadge(i, t==='--:--:--' ? null : t);
     }
 
-    const vehNames = ['tatra','iveco','stihl','magirus'];
-    vehNames.forEach(name => {
-      const active = state.vehicles && state.vehicles[name];
-      const sumId = {tatra:'sumTatraDetails', iveco:'sumIvecoDetails', stihl:'sumStihlDetails', magirus:'sumMagirusDetails'}[name];
-      if (!active) {
-        setText(sumId, 'Nezúčastnilo sa výjazdu.');
-      } else {
-        const crew = (state.crews && state.crews[name]) || ($(`crew-${name}`) ? $(`crew-${name}`).textContent : '1+1');
-        const fuel = (state.fuel && typeof state.fuel[name] === 'number') ? `${state.fuel[name].toFixed(2)} L` : '0 L';
-        setText(sumId, `Posádka: ${crew} · Spotreba: ${fuel}`);
-      }
-    });
+    // TATRA
+    const tatraActive = (state.vehicles && state.vehicles.tatra) || (!$('tatraCard') ? false : !$('tatraCard').classList.contains('disabled'));
+    if (!tatraActive) {
+      setText('sumTatraDetails','Nezúčastnilo sa výjazdu.');
+    } else {
+      const crew = (state.crews && state.crews.tatra) || ($('crew-tatra') ? $('crew-tatra').textContent : '1+1');
+      const km = Number($('tatraKm')?.value||0);
+      const pumpH = Number($('tatraHour')?.value||0), pumpM = Number($('tatraMin')?.value||0);
+      const idleH = Number($('tatraIdleHour')?.value||0), idleM = Number($('tatraIdleMin')?.value||0);
+      const drive = (vehicles.tatra.kmRate||0) * km;
+      const pump = (vehicles.tatra.pumpRate||0) * hoursFrom(pumpH,pumpM);
+      const idle = (vehicles.tatra.idleRate||0) * hoursFrom(idleH,idleM);
+      const total = drive + pump + idle;
+      setText('sumTatraDetails', `Posádka: ${crew} · Km: ${km} km · Čerpadlo: ${pumpH}h ${pumpM}m · Spotreba: ${total.toFixed(2)} L`);
+    }
+
+    // IVECO
+    const ivecoActive = (state.vehicles && state.vehicles.iveco) || (!$('ivecoCard') ? false : !$('ivecoCard').classList.contains('disabled'));
+    if (!ivecoActive) {
+      setText('sumIvecoDetails','Nezúčastnilo sa výjazdu.');
+    } else {
+      const crew = (state.crews && state.crews.iveco) || ($('crew-iveco') ? $('crew-iveco').textContent : '1+1');
+      const km = Number($('ivecoKm')?.value||0);
+      const h = Number($('ivecoHour')?.value||0), m = Number($('ivecoMin')?.value||0);
+      const drive = (vehicles.iveco.kmRate||0) * km;
+      const work = (vehicles.iveco.idleRate||0) * hoursFrom(h,m);
+      const total = drive + work;
+      setText('sumIvecoDetails', `Posádka: ${crew} · Km: ${km} km · Statie: ${h}h ${m}m · Spotreba: ${total.toFixed(2)} L`);
+    }
+
+    // STIHL
+    const stihlActive = (state.vehicles && state.vehicles.stihl) || (!$('stihlCard') ? false : !$('stihlCard').classList.contains('disabled'));
+    if (!stihlActive) {
+      setText('sumStihlDetails','Nezúčastnilo sa výjazdu.');
+    } else {
+      const crew = (state.crews && state.crews.stihl) || '—';
+      const h = Number($('stihlHour')?.value||0), m = Number($('stihlMin')?.value||0);
+      const total = (vehicles.stihl.workRate||0) * hoursFrom(h,m);
+      setText('sumStihlDetails', `Posádka: ${crew} · Doba: ${h}h ${m}m · Spotreba: ${total.toFixed(2)} L`);
+    }
+
+    // MAGIRUS
+    const magirusActive = (state.vehicles && state.vehicles.magirus) || (!$('magirusCard') ? false : !$('magirusCard').classList.contains('disabled'));
+    if (!magirusActive) {
+      setText('sumMagirusDetails','Nezúčastnilo sa výjazdu.');
+    } else {
+      const crew = (state.crews && state.crews.magirus) || '—';
+      const h = Number($('magirusHour')?.value||0), m = Number($('magirusMin')?.value||0);
+      const total = (vehicles.magirus.workRate||0) * hoursFrom(h,m);
+      setText('sumMagirusDetails', `Posádka: ${crew} · Doba: ${h}h ${m}m · Spotreba: ${total.toFixed(2)} L`);
+    }
   };
 
   // --- restore UI from storage ---
   function restoreState() {
     const state = loadState();
     if (!state) return;
-    // vyjazd and type
     if ($('vyjazdSelect') && state.vyjazd) $('vyjazdSelect').value = state.vyjazd;
     if ($('typZasahuSelect') && state.typZasahu) $('typZasahuSelect').value = state.typZasahu;
 
-    // times
     if (state.times) {
       for (let i=1;i<=4;i++){
         const t = state.times[i];
@@ -1286,7 +1331,6 @@ footer.nav-footer {
       }
     }
 
-    // vehicles active
     if (state.vehicles) {
       Object.keys(state.vehicles).forEach(name => {
         const active = state.vehicles[name];
@@ -1297,7 +1341,6 @@ footer.nav-footer {
       });
     }
 
-    // crews
     if (state.crews) {
       Object.keys(state.crews).forEach(name => {
         const el = $(`crew-${name}`);
@@ -1305,7 +1348,7 @@ footer.nav-footer {
       });
     }
 
-    // fuel
+    // fuel results (will be recomputed on generateSummary if needed)
     if (state.fuel) {
       if (typeof state.fuel.tatra === 'number' && $('tatraFuelResult')) $('tatraFuelResult').textContent = `Spolu: ${state.fuel.tatra.toFixed(2)} L`;
       if (typeof state.fuel.iveco === 'number' && $('ivecoFuelResult')) $('ivecoFuelResult').textContent = `Spolu: ${state.fuel.iveco.toFixed(2)} L`;
@@ -1359,19 +1402,16 @@ footer.nav-footer {
     }
   };
 
-  // --- wire up simple onchange handlers for inputs to save state live ---
+  // --- wire up handlers ---
   function attachInputHandlers() {
-    // save vyjazd and typZasahu
     const vy = $('vyjazdSelect'); if (vy) vy.addEventListener('change', () => { const s = loadState(); s.vyjazd = vy.value; saveState(s); generateSummary(); });
     const typ = $('typZasahuSelect'); if (typ) typ.addEventListener('change', () => { const s = loadState(); s.typZasahu = typ.value; saveState(s); generateSummary(); });
 
-    // fuel-related selects
     const fuelSelectIds = ['tatraKm','tatraHour','tatraMin','tatraIdleHour','tatraIdleMin','ivecoKm','ivecoHour','ivecoMin','stihlHour','stihlMin','magirusHour','magirusMin'];
     fuelSelectIds.forEach(id => {
       const el = $(id);
       if (!el) return;
       el.addEventListener('change', () => {
-        // determine vehicle from id
         if (id.startsWith('tatra')) calculateFuel('tatra');
         else if (id.startsWith('iveco')) calculateFuel('iveco');
         else if (id.startsWith('stihl')) calculateFuel('stihl');

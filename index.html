@@ -962,7 +962,7 @@ footer.nav-footer {
         <div class="report-header">
           <div class="report-title-group">
             <h2>SPRÁVA O VÝJAZDE</h2>
-            <p>Dobrovoľný hasičský zbor obce Lehnice</p>
+            <p>Dobrovoľný hasičský zbor Lehnice</p>
           </div>
           <div class="report-badge-container">
             <div class="report-badge-vyjazd" id="sumVyjazd">#1. výjazd</div>
@@ -1010,405 +1010,385 @@ footer.nav-footer {
 
     <footer class="nav-footer">
       <button class="btn btn-secondary" onclick="goToPage(2)">⬅ Späť</button>
-      <button class="btn btn-success" id="downloadBtn" onclick="downloadReport()">Stiahnuť obrázok</button>
+      <button class="btn btn-success" onclick="downloadOrShareReport()">Stiahnuť/Preposlať</button>
     </footer>
   </div>
 
 </div>
 
+<!-- Full JS: clocks, selects, state, time pickers, vehicles, fuel calc, summary, share/download -->
 <script>
-/* Utility: format time HH:MM:SS from Date or string */
-function formatTimeFromDate(d) {
-  const hh = String(d.getHours()).padStart(2,'0');
-  const mm = String(d.getMinutes()).padStart(2,'0');
-  const ss = String(d.getSeconds()).padStart(2,'0');
-  return `${hh}:${mm}:${ss}`;
-}
-function formatTimeFromInputVal(val) {
-  if (!val) return '--:--:--';
-  if (val.length === 5) return val + ':00';
-  return val;
-}
+(function () {
+  // --- helpers ---
+  const $ = id => document.getElementById(id);
+  const pad = n => n.toString().padStart(2, '0');
+  const formatTime = date => `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  const setText = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+  const STORAGE_KEY = 'dhzo_lehnice_v1';
 
-/* LIVE CLOCK & DATE */
-function updateClocks() {
-  const now = new Date();
-  const hh = String(now.getHours()).padStart(2, '0');
-  const mm = String(now.getMinutes()).padStart(2, '0');
-  const ss = String(now.getSeconds()).padStart(2, '0');
-  const clockStr = `${hh}:${mm}:${ss}`;
-
-  const day = String(now.getDate()).padStart(2, '0');
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const year = now.getFullYear();
-  const dateStr = `${day}.${month}.${year}`;
-
-  const c1 = document.getElementById('clock1');
-  const c2 = document.getElementById('clock2');
-  const d1 = document.getElementById('date1');
-  const d2 = document.getElementById('date2');
-
-  if (c1) c1.textContent = clockStr;
-  if (c2) c2.textContent = clockStr;
-  if (d1) d1.textContent = dateStr;
-  if (d2) d2.textContent = dateStr;
-}
-
-/* OPEN NATIVE TIME PICKER (mobile-friendly) */
-function openPicker(event, idx) {
-  event.stopPropagation();
-  const picker = document.getElementById('picker' + idx);
-  if (!picker) return;
-  picker.style.position = 'static';
-  picker.style.opacity = '1';
-  picker.style.pointerEvents = 'auto';
-  picker.style.width = '120px';
-  picker.style.height = '36px';
-  try {
-    if (typeof picker.showPicker === 'function') {
-      picker.showPicker();
-    } else {
-      picker.focus();
-      picker.click();
-    }
-  } catch (e) {
-    picker.focus();
-    picker.click();
-  }
-  const hide = () => {
-    setTimeout(()=> {
-      picker.style.position = '';
-      picker.style.opacity = '';
-      picker.style.pointerEvents = '';
-      picker.style.width = '';
-      picker.style.height = '';
-      picker.removeEventListener('blur', hide);
-    }, 150);
+  // --- config ---
+  const crewOptions = ['1+1','1+2','1+3','2+3'];
+  const vehicles = {
+    tatra: { kmRate: 0.57, pumpRate: 18, idleRate: 7 },
+    iveco: { kmRate: 0.15, idleRate: 4 }, // pumpRate N/A
+    stihl: { workRate: 1 },
+    magirus: { workRate: 8 }
   };
-  picker.addEventListener('blur', hide);
-}
 
-/* Apply value from picker to badge and save */
-function applyPickerTime(idx) {
-  const picker = document.getElementById('picker' + idx);
-  const badge = document.getElementById('time' + idx);
-  if (!picker || !badge) return;
-  const val = picker.value;
-  const formatted = formatTimeFromInputVal(val);
-  badge.textContent = formatted;
-  badge.classList.add('active');
-  saveState();
-  picker.style.position = '';
-  picker.style.opacity = '';
-  picker.style.pointerEvents = '';
-  picker.style.width = '';
-  picker.style.height = '';
-}
-
-/* Clicking the whole card records current time (now) */
-function saveTime(idx) {
-  const badge = document.getElementById('time' + idx);
-  if (!badge) return;
-  const now = new Date();
-  badge.textContent = formatTimeFromDate(now);
-  badge.classList.add('active');
-  const picker = document.getElementById('picker' + idx);
-  if (picker) {
-    picker.value = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
-  }
-  saveState();
-}
-
-/* Reset all saved data (and UI) */
-function resetTimes() {
-  if (!confirm('Biztosan törlöd az adatokat?')) return;
-  localStorage.removeItem('dhzo_state_v1');
-  location.reload();
-}
-
-/* PAGE NAV */
-function goToPage(n) {
-  const pages = [1,2,3];
-  pages.forEach(p => {
-    const el = document.getElementById('page' + p);
-    if (!el) return;
-    el.style.display = (p === n) ? 'flex' : (p === 1 ? 'flex' : 'none');
-  });
-  document.querySelectorAll('[id^="page"]').forEach(el => {
-    if (el.id === 'page' + n) el.classList.remove('hidden'); else el.classList.add('hidden');
-  });
-}
-
-/* Vehicles: toggle and crew cycling */
-function toggleVehicle(name) {
-  const card = document.getElementById(name + 'Card');
-  const toggle = document.getElementById(name + 'Toggle');
-  if (!card || !toggle) return;
-  const active = toggle.classList.toggle('active');
-  if (active) card.classList.remove('disabled'); else card.classList.add('disabled');
-  saveState();
-}
-function cycleCrew(name) {
-  const el = document.getElementById('crew-' + name);
-  if (!el) return;
-  let options = ['1+1','1+2','1+3','2+4']; // fallback
-  if (name === 'tatra') options = ['1+1','1+2','1+3'];
-  else if (name === 'iveco') options = ['1+1','1+2','1+3','1+4','1+5'];
-  const idx = options.indexOf(el.textContent);
-  const next = options[(idx + 1) % options.length];
-  el.textContent = next;
-  saveState();
-}
-
-/* Populate selects and vyjazd 1..100 */
-function populateSelects() {
-  function fill(id, from, to, step=1) {
-    const sel = document.getElementById(id);
-    if (!sel || sel.options.length) return;
-    for (let i=from;i<=to;i+=step) {
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.text = i;
-      sel.appendChild(opt);
+  // --- clocks ---
+  function startClocks() {
+    function update() {
+      const now = new Date();
+      setText('clock1', formatTime(now));
+      setText('clock2', formatTime(now));
+      const localeDate = now.toLocaleDateString();
+      setText('date1', localeDate);
+      setText('date2', localeDate);
+      setText('sumDate', localeDate);
     }
-  }
-  const vy = document.getElementById('vyjazdSelect');
-  if (vy && !vy.options.length) {
-    for (let i=1;i<=100;i++) {
-      const o = document.createElement('option');
-      o.value = String(i);
-      o.text = `#${i}. výjazd`;
-      vy.appendChild(o);
-    }
-  }
-  fill('tatraKm', 0, 200, 1);
-  fill('ivecoKm', 0, 200, 1);
-  ['tatraHour','tatraIdleHour','ivecoHour','stihlHour','magirusHour'].forEach(id => fill(id,0,12));
-  ['tatraMin','tatraIdleMin','ivecoMin','stihlMin','magirusMin'].forEach(id => fill(id,0,59));
-}
-
-/* Fuel calculation with updated rates */
-function calculateFuel(name) {
-  const rates = {
-    tatra: { perKm:0.57, pumpPerHour:18, idlePerHour:7 },
-    iveco: { perKm:0.15, pumpPerHour:0, idlePerHour:4 },
-    stihl: { perKm:0, pumpPerHour:0, idlePerHour:1 },
-    magirus: { perKm:0, pumpPerHour:0, idlePerHour:8 }
-  };
-  const r = rates[name];
-  if (!r) return;
-  let total = 0;
-  const kmSel = document.getElementById(name + 'Km');
-  const km = kmSel ? parseFloat(kmSel.value || '0') : 0;
-  total += (r.perKm || 0) * km;
-  const hourSel = document.getElementById(name + 'Hour');
-  const minSel = document.getElementById(name + 'Min');
-  const idleHourSel = document.getElementById(name + 'IdleHour') || null;
-  const idleMinSel = document.getElementById(name + 'IdleMin') || null;
-  const hours = hourSel ? parseFloat(hourSel.value || '0') : 0;
-  const mins = minSel ? parseFloat(minSel.value || '0') : 0;
-  const idleHours = idleHourSel ? parseFloat(idleHourSel.value || '0') : 0;
-  const idleMins = idleMinSel ? parseFloat(idleMinSel.value || '0') : 0;
-
-  const hoursVal = hours + mins/60;
-  const idleVal = idleHours + idleMins/60;
-
-  if ((r.pumpPerHour || 0) > 0) {
-    total += (r.pumpPerHour || 0) * hoursVal;
-    total += (r.idlePerHour || 0) * idleVal;
-  } else {
-    if ((r.idlePerHour || 0) > 0) {
-      total += r.idlePerHour * (hoursVal + idleVal);
-    }
+    update();
+    setInterval(update, 1000);
   }
 
-  total = Math.round(total * 10) / 10;
-  const resultEl = document.getElementById(name + 'FuelResult');
-  if (resultEl) resultEl.textContent = 'Spolu: ' + total + ' L';
-  saveState();
-}
-
-/* Save/load state */
-function saveState() {
-  const state = {};
-  for (let i=1;i<=4;i++) {
-    const badge = document.getElementById('time' + i);
-    state['time' + i] = badge ? badge.textContent : null;
-    const picker = document.getElementById('picker' + i);
-    state['picker' + i] = picker ? picker.value : null;
-  }
-  const typ = document.getElementById('typZasahuSelect');
-  state['typ'] = typ ? typ.value : '';
-  const vy = document.getElementById('vyjazdSelect');
-  state['vyjazd'] = vy ? vy.value : '';
-  ['tatra','iveco','stihl','magirus'].forEach(name => {
-    const toggle = document.getElementById(name + 'Toggle');
-    const crew = document.getElementById('crew-' + name);
-    state[name + '_active'] = toggle ? toggle.classList.contains('active') : false;
-    state[name + '_crew'] = crew ? crew.textContent : '';
-    ['Km','Hour','Min','IdleHour','IdleMin'].forEach(suf => {
-      const el = document.getElementById(name + suf);
-      if (el) state[name + '_' + suf] = el.value;
-    });
-    const res = document.getElementById(name + 'FuelResult');
-    state[name + '_fuelResult'] = res ? res.textContent : '';
-  });
-  try {
-    localStorage.setItem('dhzo_state_v1', JSON.stringify(state));
-  } catch (e) {
-    console.error('Could not save state', e);
-  }
-}
-function loadState() {
-  populateSelects();
-  const raw = localStorage.getItem('dhzo_state_v1');
-  if (!raw) return;
-  try {
-    const state = JSON.parse(raw);
-    for (let i=1;i<=4;i++) {
-      const badge = document.getElementById('time' + i);
-      if (badge && state['time' + i]) badge.textContent = state['time' + i];
-      const picker = document.getElementById('picker' + i);
-      if (picker && state['picker' + i]) picker.value = state['picker' + i];
-      if (badge && state['time' + i] && state['time' + i] !== '--:--:--') badge.classList.add('active');
-    }
-    const typ = document.getElementById('typZasahuSelect');
-    if (typ && state.typ) typ.value = state.typ;
-    const vy = document.getElementById('vyjazdSelect');
-    if (vy && state.vyjazd) vy.value = state.vyjazd;
-    ['tatra','iveco','stihl','magirus'].forEach(name => {
-      const toggle = document.getElementById(name + 'Toggle');
-      const card = document.getElementById(name + 'Card');
-      const crew = document.getElementById('crew-' + name);
-      if (state[name + '_active']) {
-        if (toggle) toggle.classList.add('active');
-        if (card) card.classList.remove('disabled');
-      } else {
-        if (toggle) toggle.classList.remove('active');
-        if (card) card.classList.add('disabled');
+  // --- populate selects ---
+  function populateSelects() {
+    const vy = $('vyjazdSelect');
+    if (vy) {
+      vy.innerHTML = '';
+      for (let i=1;i<=20;i++){
+        const o = document.createElement('option'); o.value=i; o.textContent=`#${i}. výjazd`; vy.appendChild(o);
       }
-      if (crew && state[name + '_crew']) crew.textContent = state[name + '_crew'];
-      ['Km','Hour','Min','IdleHour','IdleMin'].forEach(suf => {
-        const el = document.getElementById(name + suf);
-        const key = name + '_' + suf;
-        if (el && state[key] !== undefined) el.value = state[key];
+    }
+    // km 0..200
+    ['tatraKm','ivecoKm'].forEach(id => {
+      const sel = $(id);
+      if (!sel) return;
+      sel.innerHTML = '';
+      for (let i=0;i<=200;i++){ const o=document.createElement('option'); o.value=i; o.textContent=i; sel.appendChild(o); }
+    });
+    // hours 0..12
+    const hourIds = ['tatraHour','tatraIdleHour','ivecoHour','stihlHour','magirusHour'];
+    const minIds = ['tatraMin','tatraIdleMin','ivecoMin','stihlMin','magirusMin'];
+    hourIds.forEach(id => {
+      const sel = $(id); if(!sel) return; sel.innerHTML='';
+      for (let h=0;h<=12;h++){ const o=document.createElement('option'); o.value=h; o.textContent=h; sel.appendChild(o); }
+    });
+    // minutes step 5
+    minIds.forEach(id => {
+      const sel = $(id); if(!sel) return; sel.innerHTML='';
+      for (let m=0;m<60;m+=5){ const o=document.createElement('option'); o.value=m; o.textContent=m; sel.appendChild(o); }
+    });
+  }
+
+  // --- storage ---
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch(e) { return {}; }
+  }
+  function saveState(state) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+  }
+
+  // --- time badges ---
+  function setTimeBadge(index, valueStr) {
+    const el = $(`time${index}`);
+    if (!el) return;
+    el.textContent = valueStr || '--:--:--';
+    if (valueStr && valueStr !== '--:--:--') el.classList.add('active'); else el.classList.remove('active');
+  }
+
+  // --- save time by clicking ---
+  window.saveTime = function(index) {
+    const state = loadState();
+    const now = new Date();
+    state.times = state.times || {};
+    state.times[index] = formatTime(now);
+    saveState(state);
+    setTimeBadge(index, state.times[index]);
+    setText(`sumTime${index}`, state.times[index] || '--:--:--');
+  };
+
+  // --- open native picker for edit ---
+  window.openPicker = function(evt, index) {
+    evt.stopPropagation();
+    const picker = $(`picker${index}`);
+    if (!picker) return;
+    const state = loadState();
+    const current = state.times && state.times[index] ? state.times[index] : '';
+    if (current) {
+      picker.value = current.length===8 ? current : current.slice(0,5);
+    } else {
+      const now = new Date();
+      picker.value = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    }
+    // reveal temporarily
+    picker.style.position='static';
+    picker.style.opacity='1';
+    picker.style.pointerEvents='auto';
+    picker.style.width='auto';
+    picker.style.height='auto';
+    picker.focus();
+  };
+
+  window.applyPickerTime = function(index) {
+    const picker = $(`picker{index}`) || $(`picker${index}`);
+    if (!picker) return;
+    let val = picker.value;
+    if (!val) return;
+    if (val.split(':').length === 2) val = `${val}:00`;
+    const state = loadState();
+    state.times = state.times || {};
+    state.times[index] = val;
+    saveState(state);
+    setTimeBadge(index, val);
+    setText(`sumTime${index}`, val);
+    // hide again
+    picker.style.position='absolute';
+    picker.style.opacity='0';
+    picker.style.pointerEvents='none';
+    picker.style.width='0';
+    picker.style.height='0';
+  };
+
+  // --- reset ---
+  window.resetTimes = function() {
+    if (!confirm('Biztosan törölni szeretnéd az összes bejegyzést?')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    for (let i=1;i<=4;i++){ setTimeBadge(i,'--:--:--'); setText(`sumTime${i}`,'--:--:--'); }
+    setText('sumTypZasahu','Nenastavené');
+    setText('sumTatraDetails','Nezúčastnilo sa výjazdu.');
+    setText('sumIvecoDetails','Nezúčastnilo sa výjazdu.');
+    setText('sumStihlDetails','Nezúčastnilo sa výjazdu.');
+    setText('sumMagirusDetails','Nezúčastnilo sa výjazdu.');
+  };
+
+  // --- page navigation ---
+  window.goToPage = function(n) {
+    for (const i of [1,2,3]) {
+      const p = $(`page${i}`);
+      if (!p) continue;
+      p.classList.toggle('hidden', i!==n);
+      p.style.display = (i===n) ? 'flex' : 'none';
+    }
+    if (n===3) generateSummary();
+  };
+
+  // --- vehicle toggles / crew ---
+  window.toggleVehicle = function(name) {
+    const card = $(`${name}Card`);
+    const toggle = $(`${name}Toggle`);
+    if (!card || !toggle) return;
+    const disabled = card.classList.contains('disabled');
+    if (disabled) {
+      card.classList.remove('disabled');
+      toggle.classList.add('active');
+    } else {
+      card.classList.add('disabled');
+      toggle.classList.remove('active');
+    }
+    const state = loadState(); state.vehicles = state.vehicles || {}; state.vehicles[name] = !disabled; saveState(state);
+    calculateFuel(name);
+    generateSummary();
+  };
+
+  window.cycleCrew = function(name) {
+    const el = $(`crew-${name}`);
+    if (!el) return;
+    const cur = el.textContent || crewOptions[0];
+    const idx = crewOptions.indexOf(cur);
+    const next = crewOptions[(idx+1)%crewOptions.length];
+    el.textContent = next;
+    const state = loadState(); state.crews = state.crews || {}; state.crews[name] = next; saveState(state);
+    generateSummary();
+  };
+
+  // --- fuel calculation ---
+  function hoursFrom(h,m){ return Number(h) + (Number(m)||0)/60; }
+
+  window.calculateFuel = function(name) {
+    const state = loadState();
+    let total = 0;
+    if (name === 'tatra') {
+      const km = Number($('tatraKm').value||0);
+      const drive = (vehicles.tatra.kmRate||0) * km;
+      const pumpH = Number($('tatraHour').value||0); const pumpM = Number($('tatraMin').value||0);
+      const pump = (vehicles.tatra.pumpRate||0) * hoursFrom(pumpH,pumpM);
+      const idleH = Number($('tatraIdleHour').value||0); const idleM = Number($('tatraIdleMin').value||0);
+      const idle = (vehicles.tatra.idleRate||0) * hoursFrom(idleH,idleM);
+      total = drive + pump + idle;
+      if ($('tatraFuelResult')) $('tatraFuelResult').textContent = `Spolu: ${total.toFixed(2)} L`;
+      state.fuel = state.fuel||{}; state.fuel.tatra = total; saveState(state);
+    } else if (name === 'iveco') {
+      const km = Number($('ivecoKm').value||0);
+      const drive = (vehicles.iveco.kmRate||0) * km;
+      const h = Number($('ivecoHour').value||0); const m = Number($('ivecoMin').value||0);
+      const work = (vehicles.iveco.idleRate||0) * hoursFrom(h,m);
+      total = drive + work;
+      if ($('ivecoFuelResult')) $('ivecoFuelResult').textContent = `Spolu: ${total.toFixed(2)} L`;
+      state.fuel = state.fuel||{}; state.fuel.iveco = total; saveState(state);
+    } else if (name === 'stihl') {
+      const h = Number($('stihlHour').value||0); const m = Number($('stihlMin').value||0);
+      total = (vehicles.stihl.workRate||0) * hoursFrom(h,m);
+      if ($('stihlFuelResult')) $('stihlFuelResult').textContent = `Spolu: ${total.toFixed(2)} L`;
+      state.fuel = state.fuel||{}; state.fuel.stihl = total; saveState(state);
+    } else if (name === 'magirus') {
+      const h = Number($('magirusHour').value||0); const m = Number($('magirusMin').value||0);
+      total = (vehicles.magirus.workRate||0) * hoursFrom(h,m);
+      if ($('magirusFuelResult')) $('magirusFuelResult').textContent = `Spolu: ${total.toFixed(2)} L`;
+      state.fuel = state.fuel||{}; state.fuel.magirus = total; saveState(state);
+    }
+    generateSummary();
+  };
+
+  // --- generate summary ---
+  window.generateSummary = function() {
+    const state = loadState();
+    const vy = $('vyjazdSelect') ? $('vyjazdSelect').value : (state.vyjazd || '1');
+    setText('sumVyjazd', `#${vy}. výjazd`);
+    setText('sumTypZasahu', ($('typZasahuSelect')?.value || state.typZasahu || 'Nenastavené'));
+
+    for (let i=1;i<=4;i++){
+      const t = state.times && state.times[i] ? state.times[i] : '--:--:--';
+      setText(`sumTime${i}`, t);
+      setTimeBadge(i, t==='--:--:--' ? null : t);
+    }
+
+    const vehNames = ['tatra','iveco','stihl','magirus'];
+    vehNames.forEach(name => {
+      const active = state.vehicles && state.vehicles[name];
+      const sumId = {tatra:'sumTatraDetails', iveco:'sumIvecoDetails', stihl:'sumStihlDetails', magirus:'sumMagirusDetails'}[name];
+      if (!active) {
+        setText(sumId, 'Nezúčastnilo sa výjazdu.');
+      } else {
+        const crew = (state.crews && state.crews[name]) || ($(`crew-${name}`) ? $(`crew-${name}`).textContent : '1+1');
+        const fuel = (state.fuel && typeof state.fuel[name] === 'number') ? `${state.fuel[name].toFixed(2)} L` : '0 L';
+        setText(sumId, `Posádka: ${crew} · Spotreba: ${fuel}`);
+      }
+    });
+  };
+
+  // --- restore UI from storage ---
+  function restoreState() {
+    const state = loadState();
+    if (!state) return;
+    // vyjazd and type
+    if ($('vyjazdSelect') && state.vyjazd) $('vyjazdSelect').value = state.vyjazd;
+    if ($('typZasahuSelect') && state.typZasahu) $('typZasahuSelect').value = state.typZasahu;
+
+    // times
+    if (state.times) {
+      for (let i=1;i<=4;i++){
+        const t = state.times[i];
+        if (t) setTimeBadge(i, t);
+        setText(`sumTime${i}`, t || '--:--:--');
+      }
+    }
+
+    // vehicles active
+    if (state.vehicles) {
+      Object.keys(state.vehicles).forEach(name => {
+        const active = state.vehicles[name];
+        const card = $(`${name}Card`);
+        const toggle = $(`${name}Toggle`);
+        if (card) card.classList.toggle('disabled', !active);
+        if (toggle) toggle.classList.toggle('active', !!active);
       });
-      const res = document.getElementById(name + 'FuelResult');
-      if (res && state[name + '_fuelResult']) res.textContent = state[name + '_fuelResult'];
-    });
-  } catch (e) {
-    console.error('Could not load state', e);
-  }
-}
-
-/* parse fuel numeric value from "Spolu: X L" */
-function parseFuelValue(text) {
-  if (!text) return 0;
-  const m = text.match(/([\d.,]+)\s*L/);
-  if (!m) return 0;
-  const num = m[1].replace(',', '.');
-  const f = parseFloat(num);
-  return isNaN(f) ? 0 : f;
-}
-
-/* SUMMARY generation: show only used vehicles; include km for tatra/iveco; append (nafta)/(benzin) */
-function generateSummary() {
-  for (let i=1;i<=4;i++) {
-    const badge = document.getElementById('time' + i);
-    const sum = document.getElementById('sumTime' + i);
-    if (badge && sum) sum.textContent = badge.textContent || '--:--:--';
-  }
-  const typ = document.getElementById('typZasahuSelect');
-  const sumTyp = document.getElementById('sumTypZasahu');
-  if (typ && sumTyp) sumTyp.textContent = typ.value || 'Nenastavené';
-
-  // helper to fill vehicle section
-  function fillVehicle(name, fuelUnit, sectionId, sumId, showKm) {
-    const toggle = document.getElementById(name + 'Toggle');
-    const active = toggle ? toggle.classList.contains('active') : false;
-    const section = document.getElementById(sectionId);
-    const sumEl = document.getElementById(sumId);
-    if (!section || !sumEl) return;
-    if (!active) {
-      // hide entire section
-      section.style.display = 'none';
-      return;
     }
-    section.style.display = ''; // show
 
-    // build details
-    let parts = [];
-    if (showKm) {
-      const kmVal = parseInt(document.getElementById(name + 'Km')?.value || '0', 10);
-      if (kmVal > 0) parts.push(`Cesta: ${kmVal} km`);
+    // crews
+    if (state.crews) {
+      Object.keys(state.crews).forEach(name => {
+        const el = $(`crew-${name}`);
+        if (el) el.textContent = state.crews[name];
+      });
     }
-    const fuelText = document.getElementById(name + 'FuelResult')?.textContent || 'Spolu: 0 L';
-    const fuelVal = parseFuelValue(fuelText);
-    // format with 1 decimal if needed
-    const fuelFormatted = (Math.round(fuelVal * 10) / 10).toString().replace('.', ',');
-    parts.push(`Spolu: ${fuelFormatted} L (${fuelUnit})`);
-    sumEl.innerHTML = parts.join('<br>');
+
+    // fuel
+    if (state.fuel) {
+      if (typeof state.fuel.tatra === 'number' && $('tatraFuelResult')) $('tatraFuelResult').textContent = `Spolu: ${state.fuel.tatra.toFixed(2)} L`;
+      if (typeof state.fuel.iveco === 'number' && $('ivecoFuelResult')) $('ivecoFuelResult').textContent = `Spolu: ${state.fuel.iveco.toFixed(2)} L`;
+      if (typeof state.fuel.stihl === 'number' && $('stihlFuelResult')) $('stihlFuelResult').textContent = `Spolu: ${state.fuel.stihl.toFixed(2)} L`;
+      if (typeof state.fuel.magirus === 'number' && $('magirusFuelResult')) $('magirusFuelResult').textContent = `Spolu: ${state.fuel.magirus.toFixed(2)} L`;
+    }
+
+    generateSummary();
   }
 
-  fillVehicle('tatra', 'nafta', 'section-tatra', 'sumTatraDetails', true);
-  fillVehicle('iveco', 'nafta', 'section-iveco', 'sumIvecoDetails', true);
-  fillVehicle('stihl', 'benzin', 'section-stihl', 'sumStihlDetails', false);
-  fillVehicle('magirus', 'benzin', 'section-magirus', 'sumMagirusDetails', false);
+  // --- download/share report ---
+  window.downloadOrShareReport = async function() {
+    if (typeof generateSummary === 'function') try { generateSummary(); } catch(e){ console.warn(e); }
+    const card = $('reportCard');
+    if (!card) { alert('Nincs reportCard elem.'); return; }
 
-  // date and vyjazd
-  const sumDate = document.getElementById('sumDate');
-  const today = new Date();
-  if (sumDate) sumDate.textContent = String(today.getDate()).padStart(2,'0') + '.' + String(today.getMonth()+1).padStart(2,'0') + '.' + today.getFullYear();
-  const sumVy = document.getElementById('sumVyjazd');
-  const vySelect = document.getElementById('vyjazdSelect');
-  if (sumVy && vySelect) sumVy.textContent = vySelect.options[vySelect.selectedIndex] ? vySelect.options[vySelect.selectedIndex].text : sumVy.textContent;
-}
+    try {
+      const canvas = await html2canvas(card, { scale: 2, useCORS: true });
+      canvas.toBlob(async (blob) => {
+        if (!blob) { alert('Hiba a kép létrehozásakor.'); return; }
+        const filename = `sprava-${new Date().toISOString().replace(/[:.]/g,'-')}.png`;
+        const file = new File([blob], filename, { type: 'image/png' });
 
-/* download report (uses html2canvas if available) */
-function downloadReport() {
-  const el = document.getElementById('reportCard');
-  if (!el) return alert('Report card not found.');
-  if (window.html2canvas) {
-    html2canvas(el, {scale:2}).then(canvas => {
-      const a = document.createElement('a');
-      a.href = canvas.toDataURL('image/png');
-      a.download = 'report.png';
-      a.click();
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: 'Správa o výjazde',
+              text: (document.getElementById('sumTypZasahu')?.textContent || '') + ' ' + (document.getElementById('sumVyjazd')?.textContent || '')
+            });
+            return;
+          } catch (err) {
+            console.warn('Share API hiba vagy megszakítva:', err);
+          }
+        }
+
+        // Fallback: download + open in new tab
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        try { window.open(url, '_blank', 'noopener'); } catch(e) {}
+        setTimeout(() => URL.revokeObjectURL(url), 20000);
+      }, 'image/png');
+    } catch (err) {
+      console.error('Kép létrehozási hiba:', err);
+      alert('Nem sikerült a kép elkészítése: ' + (err && err.message ? err.message : err));
+    }
+  };
+
+  // --- wire up simple onchange handlers for inputs to save state live ---
+  function attachInputHandlers() {
+    // save vyjazd and typZasahu
+    const vy = $('vyjazdSelect'); if (vy) vy.addEventListener('change', () => { const s = loadState(); s.vyjazd = vy.value; saveState(s); generateSummary(); });
+    const typ = $('typZasahuSelect'); if (typ) typ.addEventListener('change', () => { const s = loadState(); s.typZasahu = typ.value; saveState(s); generateSummary(); });
+
+    // fuel-related selects
+    const fuelSelectIds = ['tatraKm','tatraHour','tatraMin','tatraIdleHour','tatraIdleMin','ivecoKm','ivecoHour','ivecoMin','stihlHour','stihlMin','magirusHour','magirusMin'];
+    fuelSelectIds.forEach(id => {
+      const el = $(id);
+      if (!el) return;
+      el.addEventListener('change', () => {
+        // determine vehicle from id
+        if (id.startsWith('tatra')) calculateFuel('tatra');
+        else if (id.startsWith('iveco')) calculateFuel('iveco');
+        else if (id.startsWith('stihl')) calculateFuel('stihl');
+        else if (id.startsWith('magirus')) calculateFuel('magirus');
+      });
     });
-  } else {
-    alert('html2canvas not loaded.');
   }
-}
 
-/* Init */
-document.addEventListener('DOMContentLoaded', () => {
-  updateClocks();
-  setInterval(updateClocks, 1000);
-
-  populateSelects();
-  loadState();
-
-  ['tatraKm','tatraHour','tatraMin','tatraIdleHour','tatraIdleMin',
-   'ivecoKm','ivecoHour','ivecoMin',
-   'stihlHour','stihlMin',
-   'magirusHour','magirusMin'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('change', () => {
-      if (id.startsWith('tatra')) calculateFuel('tatra');
-      else if (id.startsWith('iveco')) calculateFuel('iveco');
-      else if (id.startsWith('stihl')) calculateFuel('stihl');
-      else if (id.startsWith('magirus')) calculateFuel('magirus');
-      saveState();
-    });
+  // --- init ---
+  document.addEventListener('DOMContentLoaded', () => {
+    populateSelects();
+    startClocks();
+    attachInputHandlers();
+    restoreState();
   });
-
-  const typ = document.getElementById('typZasahuSelect');
-  if (typ) typ.addEventListener('change', saveState);
-  const vy = document.getElementById('vyjazdSelect');
-  if (vy) vy.addEventListener('change', saveState);
-
-  ['tatra','iveco','stihl','magirus'].forEach(n => calculateFuel(n));
-});
+})();
 </script>
+
 </body>
 </html>

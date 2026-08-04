@@ -1165,7 +1165,7 @@ footer.nav-footer {
 
   // --- full reset to defaults ---
   window.resetAll = function() {
-    if (!confirm('Biztosan törölni szeretnéd az összes bejegyzést és visszaállítani az alapértékeket?')) return;
+    if (!confirm('Naozaj chcete vymazať všetky záznamy a obnoviť hodnoty?')) return;
 
     // clear storage
     localStorage.removeItem(STORAGE_KEY);
@@ -1214,7 +1214,7 @@ footer.nav-footer {
 
     // regenerate to ensure UI consistent
     generateSummary();
-    alert('Az összes beállítás visszaállt az alapértelmezett értékekre.');
+    alert('Všetky nastavenia boli obnovené na pôvodné hodnoty!');
   };
 
   // --- page navigation ---

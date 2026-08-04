@@ -1501,5 +1501,146 @@ footer.nav-footer {
     });
   })();
 </script>
+<script>
+/* Frissíti a 3. oldal összefoglalóját és elrejti a nem aktív járműveket */
+function generateSummary() {
+  // időpontok
+  for (let i = 1; i <= 4; i++) {
+    const t = document.getElementById('time' + i);
+    const dest = document.getElementById('sumTime' + i);
+    if (t && dest) dest.textContent = t.textContent || '--:--:--';
+  }
+
+  // vyjazd szám + dátum + típus
+  const vy = document.getElementById('vyjazdSelect');
+  const dateEl = document.getElementById('date1') || document.getElementById('date2');
+  if (document.getElementById('sumVyjazd')) {
+    document.getElementById('sumVyjazd').textContent = (vy && vy.value) ? vy.value : document.getElementById('sumVyjazd').textContent;
+  }
+  if (dateEl && document.getElementById('sumDate')) {
+    document.getElementById('sumDate').textContent = dateEl.textContent || '--.--.----';
+  }
+  const typ = document.getElementById('typZasahuSelect');
+  if (typ && document.getElementById('sumTypZasahu')) {
+    document.getElementById('sumTypZasahu').textContent = typ.value || 'Nenastavené';
+  }
+
+  // járművek kezelése
+  const vehicles = ['tatra','iveco','magirus','stihl'];
+  const idMap = {tatra:'Tatra', iveco:'Iveco', magirus:'Magirus', stihl:'Stihl'};
+
+  vehicles.forEach(v => {
+    const toggle = document.getElementById(v + 'Toggle');
+    const section = document.getElementById('section-' + v);
+    const sumDetails = document.getElementById('sum' + idMap[v] + 'Details');
+
+    if (toggle && toggle.classList.contains('active')) {
+      // láthatóvá tesszük és kitöltjük az adatokat
+      if (section) section.style.display = '';
+      const parts = [];
+
+      // posádka, ha van
+      const crew = document.getElementById('crew-' + v);
+      if (crew && crew.textContent.trim()) parts.push('Posádka: ' + crew.textContent.trim());
+
+      // km (ha van select mező), +Km hozzáadva a megjelenítéshez
+      const kmEl = document.getElementById(v + 'Km');
+      if (kmEl && kmEl.value && kmEl.value !== '0') {
+        parts.push('Vzdialenosť: ' + kmEl.value + ' km +Km');
+      }
+
+      // fuel eredmény mező (ha van)
+      const fuel = document.getElementById(v + 'FuelResult');
+      if (fuel && fuel.textContent.trim()) {
+        // fuel szöveg megőrzése (pl. "Spolu: 12.34 L")
+        parts.push('Spotreba: ' + fuel.textContent.replace(/^Spolu:\s*/i, '').trim());
+      }
+
+      // ha nincs semmi adat (pl. csak részt vesz, de nincs beállítás), mutass alternatív szöveget
+      if (parts.length === 0) {
+        if (sumDetails) sumDetails.textContent = 'Zúčastnilo sa, ale bez ďalších údajov.';
+      } else {
+        if (sumDetails) sumDetails.innerHTML = parts.join('<br>');
+      }
+    } else {
+      // ha nincs bekapcsolva: teljesen elrejtjük és töröljük a tartalmat
+      if (section) section.style.display = 'none';
+      if (sumDetails) sumDetails.innerHTML = '';
+    }
+  });
+}
+
+</script>
+<script>
+/* Frissíti a 3. oldal összefoglalóját és elrejti a nem aktív járműveket */
+function generateSummary() {
+  // időpontok
+  for (let i = 1; i <= 4; i++) {
+    const t = document.getElementById('time' + i);
+    const dest = document.getElementById('sumTime' + i);
+    if (t && dest) dest.textContent = t.textContent || '--:--:--';
+  }
+
+  // vyjazd szám + dátum + típus
+  const vy = document.getElementById('vyjazdSelect');
+  const dateEl = document.getElementById('date1') || document.getElementById('date2');
+  if (document.getElementById('sumVyjazd')) {
+    document.getElementById('sumVyjazd').textContent = (vy && vy.value) ? vy.value : document.getElementById('sumVyjazd').textContent;
+  }
+  if (dateEl && document.getElementById('sumDate')) {
+    document.getElementById('sumDate').textContent = dateEl.textContent || '--.--.----';
+  }
+  const typ = document.getElementById('typZasahuSelect');
+  if (typ && document.getElementById('sumTypZasahu')) {
+    document.getElementById('sumTypZasahu').textContent = typ.value || 'Nenastavené';
+  }
+
+  // járművek kezelése
+  const vehicles = ['tatra','iveco','magirus','stihl'];
+  const idMap = {tatra:'Tatra', iveco:'Iveco', magirus:'Magirus', stihl:'Stihl'};
+
+  vehicles.forEach(v => {
+    const toggle = document.getElementById(v + 'Toggle');
+    const section = document.getElementById('section-' + v);
+    const sumDetails = document.getElementById('sum' + idMap[v] + 'Details');
+
+    if (toggle && toggle.classList.contains('active')) {
+      // láthatóvá tesszük és kitöltjük az adatokat
+      if (section) section.style.display = '';
+      const parts = [];
+
+      // posádka, ha van
+      const crew = document.getElementById('crew-' + v);
+      if (crew && crew.textContent.trim()) parts.push('Posádka: ' + crew.textContent.trim());
+
+      // km (ha van select mező), +Km hozzáadva a megjelenítéshez
+      const kmEl = document.getElementById(v + 'Km');
+      if (kmEl && kmEl.value && kmEl.value !== '0') {
+        parts.push('Vzdialenosť: ' + kmEl.value + ' km +Km');
+      }
+
+      // fuel eredmény mező (ha van)
+      const fuel = document.getElementById(v + 'FuelResult');
+      if (fuel && fuel.textContent.trim()) {
+        // fuel szöveg megőrzése (pl. "Spolu: 12.34 L")
+        parts.push('Spotreba: ' + fuel.textContent.replace(/^Spolu:\s*/i, '').trim());
+      }
+
+      // ha nincs semmi adat (pl. csak részt vesz, de nincs beállítás), mutass alternatív szöveget
+      if (parts.length === 0) {
+        if (sumDetails) sumDetails.textContent = 'Zúčastnilo sa, ale bez ďalších údajov.';
+      } else {
+        if (sumDetails) sumDetails.innerHTML = parts.join('<br>');
+      }
+    } else {
+      // ha nincs bekapcsolva: teljesen elrejtjük és töröljük a tartalmat
+      if (section) section.style.display = 'none';
+      if (sumDetails) sumDetails.innerHTML = '';
+    }
+  });
+}
+// Ha szeretnéd, hogy a 3. oldal megjelenítésekor automatikusan fusson, meghívhatod goToPage(3) előtt/után.
+// Példa: a meglévő "Ďalej" gomb onclick-jében már szerepel generateSummary(); goToPage(3);
+</script>
 </body>
 </html>

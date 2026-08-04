@@ -1467,6 +1467,39 @@ footer.nav-footer {
   });
 })();
 </script>
+<script>
+  // felfelé kerekít a legközelebbi 0.5 literre
+  function roundUpToHalf(value) {
+    return Math.ceil(value * 2) / 2;
+  }
 
+  // figyeljük és normalizáljuk a "Spolu: X L" feliratokat
+  (function() {
+    const ids = ['tatraFuelResult', 'ivecoFuelResult', 'stihlFuelResult', 'magirusFuelResult'];
+
+    function normalizeBadge(el) {
+      if (!el) return;
+      // keressük ki az aktuális számot a tartalomból (támogatjuk a ',' és '.' tizedesjelet is)
+      const m = el.textContent.match(/Spolu:\s*([0-9]+(?:[.,][0-9]+)?)/);
+      if (!m) return;
+      const raw = parseFloat(m[1].replace(',', '.'));
+      if (isNaN(raw)) return;
+      const rounded = roundUpToHalf(raw);
+      const newText = 'Spolu: ' + rounded.toFixed(1) + ' L';
+      if (el.textContent !== newText) el.textContent = newText;
+    }
+
+    // egyszerű polling megoldás: ha a meglévő calculateFuel() frissíti a badge-et,
+    // ezt a scriptet rövid időn belül korrigálja a kívánt kerekítésre.
+    setInterval(() => {
+      ids.forEach(id => normalizeBadge(document.getElementById(id)));
+    }, 250);
+
+    // plusz egy egyszeri futtatás azonnal betöltéskor
+    document.addEventListener('DOMContentLoaded', () => {
+      ids.forEach(id => normalizeBadge(document.getElementById(id)));
+    });
+  })();
+</script>
 </body>
 </html>

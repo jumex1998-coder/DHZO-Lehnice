@@ -1642,5 +1642,65 @@ function generateSummary() {
 // Ha szeretnéd, hogy a 3. oldal megjelenítésekor automatikusan fusson, meghívhatod goToPage(3) előtt/után.
 // Példa: a meglévő "Ďalej" gomb onclick-jében már szerepel generateSummary(); goToPage(3);
 </script>
+<script>
+async function shareReportImageOnly() {
+  const report = document.getElementById('reportCard');
+  if (!report) return alert('Nem található a jelentés kártya.');
+
+  try {
+    // készíts képet a jelentésről
+    const canvas = await html2canvas(report, {backgroundColor: null, scale: 2});
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    if (!blob) throw new Error('Nem sikerült képből blobot készíteni.');
+
+    const file = new File([blob], `vyjazd_${Date.now()}.png`, { type: 'image/png' });
+
+    // Ha a böngésző támogatja a fájlok megosztását, csak a fájlt küldjük (nincs szöveg)
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: 'Správa o výjazde',
+        // NE adj meg 'text' vagy 'url' mezőt, így nem tölt be SMS üzenetet automatikusan
+      });
+      return;
+    }
+
+    // Fallback: ha nem támogatja a fájl megosztást, csak letöltjük az képet
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `vyjazd_${Date.now()}.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+    alert('A böngésződ nem támogatta a közvetlen fájlmegosztást, a kép le lett töltve helyette.');
+  } catch (err) {
+    console.error(err);
+    alert('Hiba történt a kép létrehozásakor vagy megosztásakor: ' + (err.message || err));
+  }
+}
+
+// Ha van már gomb, ami a "küldés/tovább" funkciót hívja, cseréld le az onclickját erre a függvényre.
+// Például:
+// <button class="btn btn-primary" onclick="shareReportImageOnly()">Küldés</button>
+
+// Alternatív megoldás: automatikusan befogunk minden "share" gombot a 3. oldalon.
+// (Ezt akkor használhatod, ha nem akarod kézzel módosítani a HTML gombot.)
+document.addEventListener('DOMContentLoaded', () => {
+  const page3 = document.getElementById('page3');
+  if (!page3) return;
+  // keresünk a footerben egy .btn-primary gombot a page3-on
+  const btn = page3.querySelector('footer.nav-footer .btn-primary, footer .btn-primary');
+  if (btn) {
+    // eltávolítjuk korábbi onclick-et és hozzárendeljük az új funkciót
+    btn.onclick = (e) => {
+      e.preventDefault();
+      shareReportImageOnly();
+    };
+  }
+});
+</script>
 </body>
 </html>
